@@ -15,7 +15,7 @@
   <div class="flip-blur-overlay" id="flip-blur-overlay"></div>
 
   <main id="content">
-    <section class="hero">
+    <section class="hero" id="hero">
       <div class="container">
         <h1 class="title">HEXAGON</h1>
         <p class="subtitle">Next-Gen Experiences</p>
@@ -23,7 +23,7 @@
     </section>
 
     <!-- Service 1: About Us - Multi-page flip card -->
-    <section class="service-section flip-section" data-index="1">
+    <section class="service-section flip-section" data-index="1" id="about">
       <div class="flip-card-container">
         <div class="flip-card">
           <!-- Page 1: Our Story -->
@@ -140,7 +140,7 @@
     </section>
 
     <!-- Service 2: Event & Experience - Multi-page flip card -->
-    <section class="service-section flip-section" data-index="2">
+    <section class="service-section flip-section" data-index="2" id="events">
       <div class="flip-card-container">
         <div class="flip-card">
           <!-- Page 1: Overview -->
@@ -269,74 +269,412 @@
       </div>
     </section>
 
-    <!-- Service 3: Media & Creative -->
-    <section class="service-section" data-index="3">
-      <div class="content-box hexagon-card">
-        <div class="card-edge-indicator">03</div>
-        <span class="category-tag">Visual Excellence</span>
-        <h2>Media & Creative</h2>
-        <p class="section-subtitle">Stories That Captivate</p>
-        <p>Our creative studio delivers cinematic video production, stunning photography, and content that elevates your brand's visual identity.</p>
-        <ul class="feature-grid">
-          <li><span class="feature-icon">◆</span> Video Production</li>
-          <li><span class="feature-icon">◆</span> 360° Filming</li>
-          <li><span class="feature-icon">◆</span> Photography</li>
-          <li><span class="feature-icon">◆</span> Post-Production</li>
-        </ul>
+    <!-- Service 3: Media & Creative - Multi-page flip card -->
+    <section class="service-section flip-section" data-index="3" id="media">
+      <div class="flip-card-container">
+        <div class="flip-card">
+          <!-- Page 1: Overview -->
+          <div class="flip-page" data-page="1">
+            <div class="content-box hexagon-card">
+              <div class="card-edge-indicator">03</div>
+              <span class="category-tag">Overview</span>
+              <h2>Media & Creative</h2>
+              <p class="section-subtitle">Visual Excellence</p>
+              <p>Our creative studio delivers cinematic video production, stunning photography, and content that elevates your brand's visual identity.</p>
+              <ul class="feature-grid">
+                <li><span class="feature-icon">◆</span> Video Production</li>
+                <li><span class="feature-icon">◆</span> Photography Services</li>
+                <li><span class="feature-icon">◆</span> Creative Design</li>
+                <li><span class="feature-icon">◆</span> Post-Production</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Page 2: Video Production -->
+          <div class="flip-page" data-page="2">
+            <div class="content-box hexagon-card">
+              <div class="card-edge-indicator">03</div>
+              <span class="category-tag">Video Production</span>
+              <h2>Media & Creative</h2>
+              <p class="section-subtitle">Cinematic Storytelling</p>
+              <ul class="feature-grid">
+                <li><span class="feature-icon">◆</span> Event Documentation</li>
+                <li><span class="feature-icon">◆</span> Corporate Videos</li>
+                <li><span class="feature-icon">◆</span> Promotional Content</li>
+                <li><span class="feature-icon">◆</span> Post-Production Editing</li>
+                <li><span class="feature-icon">◆</span> 360° Filming</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Page 3: Photography Services -->
+          <div class="flip-page" data-page="3">
+            <div class="content-box hexagon-card">
+              <div class="card-edge-indicator">03</div>
+              <span class="category-tag">Photography</span>
+              <h2>Media & Creative</h2>
+              <p class="section-subtitle">Capturing Moments</p>
+              <ul class="feature-grid">
+                <li><span class="feature-icon">◆</span> Event Visual Coverage</li>
+                <li><span class="feature-icon">◆</span> Corporate Photography</li>
+                <li><span class="feature-icon">◆</span> Commercial Photography</li>
+                <li><span class="feature-icon">◆</span> Fashion Photography</li>
+                <li><span class="feature-icon">◆</span> Lifestyle Photography</li>
+                <li><span class="feature-icon">◆</span> Professional Editing</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Page 4: Creative Design -->
+          <div class="flip-page" data-page="4">
+            <div class="content-box hexagon-card">
+              <div class="card-edge-indicator">03</div>
+              <span class="category-tag">Creative Design</span>
+              <h2>Media & Creative</h2>
+              <p class="section-subtitle">Design Innovation</p>
+              <ul class="feature-grid">
+                <li><span class="feature-icon">◆</span> Graphic Design</li>
+                <li><span class="feature-icon">◆</span> 3D Visual Creation</li>
+                <li><span class="feature-icon">◆</span> Media Design</li>
+                <li><span class="feature-icon">◆</span> Architectural Event Design</li>
+                <li><span class="feature-icon">◆</span> Illustration</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Progress indicator -->
+          <div class="flip-progress">
+            <span class="progress-dot active" data-page="1"></span>
+            <span class="progress-dot" data-page="2"></span>
+            <span class="progress-dot" data-page="3"></span>
+            <span class="progress-dot" data-page="4"></span>
+          </div>
+        </div>
       </div>
     </section>
 
-    <!-- Service 4: Digital Marketing -->
-    <section class="service-section" data-index="4">
-      <div class="content-box hexagon-card">
-        <div class="card-edge-indicator">04</div>
-        <span class="category-tag">Digital Growth</span>
-        <h2>Digital Marketing</h2>
-        <p class="section-subtitle">Data-Driven Results</p>
-        <p>Strategic digital solutions that amplify your brand presence. From SEO to social media, we drive measurable growth.</p>
-        <ul class="feature-grid">
-          <li><span class="feature-icon">◆</span> Web Development</li>
-          <li><span class="feature-icon">◆</span> SEO & Performance</li>
-          <li><span class="feature-icon">◆</span> Social Media</li>
-          <li><span class="feature-icon">◆</span> Digital Branding</li>
-        </ul>
+    <!-- Service 4: Digital Marketing - Multi-page flip card -->
+    <section class="service-section flip-section" data-index="4" id="digital">
+      <div class="flip-card-container">
+        <div class="flip-card">
+          <!-- Page 1: Overview -->
+          <div class="flip-page" data-page="1">
+            <div class="content-box hexagon-card">
+              <div class="card-edge-indicator">04</div>
+              <span class="category-tag">Overview</span>
+              <h2>Digital Marketing</h2>
+              <p class="section-subtitle">Data-Driven Results</p>
+              <p>Strategic digital solutions that amplify your brand presence. From SEO to social media, we drive measurable growth.</p>
+              <ul class="feature-grid">
+                <li><span class="feature-icon">◆</span> Web Development</li>
+                <li><span class="feature-icon">◆</span> Performance Marketing</li>
+                <li><span class="feature-icon">◆</span> SEO & CRO</li>
+                <li><span class="feature-icon">◆</span> Social Media & Branding</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Page 2: Web Design & Development -->
+          <div class="flip-page" data-page="2">
+            <div class="content-box hexagon-card">
+              <div class="card-edge-indicator">04</div>
+              <span class="category-tag">Web Development</span>
+              <h2>Digital Marketing</h2>
+              <p class="section-subtitle">Digital Presence</p>
+              <ul class="feature-grid">
+                <li><span class="feature-icon">◆</span> Custom Website Creation</li>
+                <li><span class="feature-icon">◆</span> Responsive Design</li>
+                <li><span class="feature-icon">◆</span> User Experience Optimization</li>
+                <li><span class="feature-icon">◆</span> E-commerce Solutions</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Page 3: Performance Marketing -->
+          <div class="flip-page" data-page="3">
+            <div class="content-box hexagon-card">
+              <div class="card-edge-indicator">04</div>
+              <span class="category-tag">Performance Marketing</span>
+              <h2>Digital Marketing</h2>
+              <p class="section-subtitle">Targeted Campaigns</p>
+              <ul class="feature-grid">
+                <li><span class="feature-icon">◆</span> Social Media Advertising</li>
+                <li><span class="feature-icon">◆</span> Search Engine Marketing</li>
+                <li><span class="feature-icon">◆</span> Affiliate Network Management</li>
+                <li><span class="feature-icon">◆</span> Data-Driven ROI Optimization</li>
+                <li><span class="feature-icon">◆</span> Measurable Results Tracking</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Page 4: SEO -->
+          <div class="flip-page" data-page="4">
+            <div class="content-box hexagon-card">
+              <div class="card-edge-indicator">04</div>
+              <span class="category-tag">SEO</span>
+              <h2>Digital Marketing</h2>
+              <p class="section-subtitle">Organic Growth</p>
+              <ul class="feature-grid">
+                <li><span class="feature-icon">◆</span> Keyword Research</li>
+                <li><span class="feature-icon">◆</span> On-Page Optimization</li>
+                <li><span class="feature-icon">◆</span> Technical SEO Strategies</li>
+                <li><span class="feature-icon">◆</span> Website Structure Enhancement</li>
+                <li><span class="feature-icon">◆</span> Content Optimization</li>
+                <li><span class="feature-icon">◆</span> Organic Traffic Growth</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Page 5: CRO & Analytics -->
+          <div class="flip-page" data-page="5">
+            <div class="content-box hexagon-card">
+              <div class="card-edge-indicator">04</div>
+              <span class="category-tag">CRO & Analytics</span>
+              <h2>Digital Marketing</h2>
+              <p class="section-subtitle">Conversion Excellence</p>
+              <ul class="feature-grid">
+                <li><span class="feature-icon">◆</span> User Behavior Analysis</li>
+                <li><span class="feature-icon">◆</span> Landing Page Optimization</li>
+                <li><span class="feature-icon">◆</span> A/B Testing</li>
+                <li><span class="feature-icon">◆</span> Performance Metrics</li>
+                <li><span class="feature-icon">◆</span> User Journey Optimization</li>
+                <li><span class="feature-icon">◆</span> ROI Maximization</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Page 6: Social Media & Branding -->
+          <div class="flip-page" data-page="6">
+            <div class="content-box hexagon-card">
+              <div class="card-edge-indicator">04</div>
+              <span class="category-tag">Social & Branding</span>
+              <h2>Digital Marketing</h2>
+              <p class="section-subtitle">Brand Excellence</p>
+              <ul class="feature-grid">
+                <li><span class="feature-icon">◆</span> Platform Strategy Development</li>
+                <li><span class="feature-icon">◆</span> Content Creation & Scheduling</li>
+                <li><span class="feature-icon">◆</span> Community Engagement</li>
+                <li><span class="feature-icon">◆</span> Brand Identity Development</li>
+                <li><span class="feature-icon">◆</span> Visual Identity Systems</li>
+                <li><span class="feature-icon">◆</span> Brand Guidelines</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Progress indicator -->
+          <div class="flip-progress">
+            <span class="progress-dot active" data-page="1"></span>
+            <span class="progress-dot" data-page="2"></span>
+            <span class="progress-dot" data-page="3"></span>
+            <span class="progress-dot" data-page="4"></span>
+            <span class="progress-dot" data-page="5"></span>
+            <span class="progress-dot" data-page="6"></span>
+          </div>
+        </div>
       </div>
     </section>
 
-    <!-- Service 5: Consultancy -->
-    <section class="service-section" data-index="5">
-      <div class="content-box hexagon-card">
-        <div class="card-edge-indicator">05</div>
-        <span class="category-tag">Strategic Vision</span>
-        <h2>Consultancy</h2>
-        <p class="section-subtitle">Architects of Success</p>
-        <p>Expert guidance for brands navigating the modern landscape. We provide strategic roadmaps and innovative solutions.</p>
-        <ul class="feature-grid">
-          <li><span class="feature-icon">◆</span> Strategic Consulting</li>
-          <li><span class="feature-icon">◆</span> Management Solutions</li>
-          <li><span class="feature-icon">◆</span> Case Studies</li>
-          <li><span class="feature-icon">◆</span> Success Stories</li>
-        </ul>
+    <!-- Service 5: Consultancy - Multi-page flip card -->
+    <section class="service-section flip-section" data-index="5" id="consultancy">
+      <div class="flip-card-container">
+        <div class="flip-card">
+          <!-- Page 1: Strategic Consulting -->
+          <div class="flip-page" data-page="1">
+            <div class="content-box hexagon-card">
+              <div class="card-edge-indicator">05</div>
+              <span class="category-tag">Strategic Vision</span>
+              <h2>Strategic Consulting</h2>
+              <p class="section-subtitle">Architects of Success</p>
+              <ul class="feature-grid">
+                <li><span class="feature-icon">◆</span> Long-term Vision Planning</li>
+                <li><span class="feature-icon">◆</span> Market Entry Strategies</li>
+                <li><span class="feature-icon">◆</span> Competitive Positioning</li>
+                <li><span class="feature-icon">◆</span> Business Model Innovation</li>
+                <li><span class="feature-icon">◆</span> Growth & Expansion Roadmaps</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Page 2: Management Consulting -->
+          <div class="flip-page" data-page="2">
+            <div class="content-box hexagon-card">
+              <div class="card-edge-indicator">05</div>
+              <span class="category-tag">Operations</span>
+              <h2>Management Consulting</h2>
+              <p class="section-subtitle">Operational Excellence</p>
+              <ul class="feature-grid">
+                <li><span class="feature-icon">◆</span> Operational Efficiency Audits</li>
+                <li><span class="feature-icon">◆</span> Organizational Restructuring</li>
+                <li><span class="feature-icon">◆</span> Process Optimization</li>
+                <li><span class="feature-icon">◆</span> Performance Management Systems</li>
+                <li><span class="feature-icon">◆</span> Change Management Programs</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Page 3: Specialized Solutions -->
+          <div class="flip-page" data-page="3">
+            <div class="content-box hexagon-card">
+              <div class="card-edge-indicator">05</div>
+              <span class="category-tag">Expertise</span>
+              <h2>Specialized Solutions</h2>
+              <p class="section-subtitle">Tailored Approaches</p>
+              <ul class="feature-grid">
+                <li><span class="feature-icon">◆</span> Digital Transformation Consulting</li>
+                <li><span class="feature-icon">◆</span> Sustainability & ESG Strategy</li>
+                <li><span class="feature-icon">◆</span> Crisis Management & Recovery</li>
+                <li><span class="feature-icon">◆</span> Mergers & Acquisitions Support</li>
+                <li><span class="feature-icon">◆</span> Innovation Lab Setup</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Page 4: Featured Projects -->
+          <div class="flip-page" data-page="4">
+            <div class="content-box hexagon-card">
+              <div class="card-edge-indicator">05</div>
+              <span class="category-tag">Portfolio</span>
+              <h2>Featured Projects</h2>
+              <p class="section-subtitle">Success Stories</p>
+              <ul class="feature-grid">
+                <li><span class="feature-icon">◆</span> Global Retail Chain - $2.4M savings</li>
+                <li><span class="feature-icon">◆</span> Tech Startup - 340% growth strategy</li>
+                <li><span class="feature-icon">◆</span> Hospitality Group - 47 properties transformed</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Page 5: Client Success Stories -->
+          <div class="flip-page" data-page="5">
+            <div class="content-box hexagon-card">
+              <div class="card-edge-indicator">05</div>
+              <span class="category-tag">Testimonials</span>
+              <h2>Client Success</h2>
+              <p class="section-subtitle">Our Partners</p>
+              <ul class="feature-grid">
+                <li><span class="feature-icon">◆</span> Fortune 500 Corporations</li>
+                <li><span class="feature-icon">◆</span> Emerging Market Leaders</li>
+                <li><span class="feature-icon">◆</span> Government Entities</li>
+                <li><span class="feature-icon">◆</span> Non-profit Organizations</li>
+                <li><span class="feature-icon">◆</span> Family Offices</li>
+                <li><span class="feature-icon">◆</span> Startup Ecosystems</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Page 6: Why Choose Hexagon -->
+          <div class="flip-page" data-page="6">
+            <div class="content-box hexagon-card">
+              <div class="card-edge-indicator">05</div>
+              <span class="category-tag">Excellence</span>
+              <h2>Why Choose Hexagon</h2>
+              <p class="section-subtitle">Our Difference</p>
+              <ul class="feature-grid">
+                <li><span class="feature-icon">◆</span> 15+ Years Industry Experience</li>
+                <li><span class="feature-icon">◆</span> Cross-sector Expertise</li>
+                <li><span class="feature-icon">◆</span> Data-driven Decisions</li>
+                <li><span class="feature-icon">◆</span> Proprietary Frameworks</li>
+                <li><span class="feature-icon">◆</span> Global Specialist Network</li>
+                <li><span class="feature-icon">◆</span> Measurable ROI</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Progress indicator -->
+          <div class="flip-progress">
+            <span class="progress-dot active" data-page="1"></span>
+            <span class="progress-dot" data-page="2"></span>
+            <span class="progress-dot" data-page="3"></span>
+            <span class="progress-dot" data-page="4"></span>
+            <span class="progress-dot" data-page="5"></span>
+            <span class="progress-dot" data-page="6"></span>
+          </div>
+        </div>
       </div>
     </section>
 
-    <!-- Service 6: Contact -->
-    <section class="service-section" data-index="6">
-      <div class="content-box hexagon-card">
-        <div class="card-edge-indicator">06</div>
-        <span class="category-tag">Get In Touch</span>
-        <h2>Let's Connect</h2>
-        <p class="section-subtitle">Start Your Journey</p>
-        <p>Ready to transform your vision into reality? Let's create something extraordinary together.</p>
-        <div class="contact-cta">
-          <a href="mailto:hello@hexagon.pro" class="cta-button">Contact Us</a>
+    <!-- Service 6: Contact - Multi-page flip card -->
+    <section class="service-section flip-section" data-index="6" id="contact">
+      <div class="flip-card-container">
+        <div class="flip-card">
+          <!-- Page 1: Get In Touch -->
+          <div class="flip-page" data-page="1">
+            <div class="content-box hexagon-card">
+              <div class="card-edge-indicator">06</div>
+              <span class="category-tag">Get In Touch</span>
+              <h2>Let's Connect</h2>
+              <p class="section-subtitle">Start Your Journey</p>
+              <p>Ready to transform your vision into reality? Let's create something extraordinary together.</p>
+              <ul class="feature-grid">
+                <li><span class="feature-icon">◆</span> Strategic Planning & Consultation</li>
+                <li><span class="feature-icon">◆</span> Project Proposals & Quotes</li>
+                <li><span class="feature-icon">◆</span> Partnership Opportunities</li>
+                <li><span class="feature-icon">◆</span> General Inquiries</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Page 2: Contact Details -->
+          <div class="flip-page" data-page="2">
+            <div class="content-box hexagon-card">
+              <div class="card-edge-indicator">06</div>
+              <span class="category-tag">Contact Details</span>
+              <h2>Let's Connect</h2>
+              <p class="section-subtitle">Reach Out</p>
+              <div class="vision-mission">
+                <div class="vm-item">
+                  <span class="vm-label">Email</span>
+                  <p>hello@hexagon.pro</p>
+                </div>
+                <div class="vm-item">
+                  <span class="vm-label">Phone</span>
+                  <p>+44 20 7946 0000</p>
+                </div>
+                <div class="vm-item">
+                  <span class="vm-label">Locations</span>
+                  <p>London . Dubai . Istanbul</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Page 3: Send Message -->
+          <div class="flip-page" data-page="3">
+            <div class="content-box hexagon-card">
+              <div class="card-edge-indicator">06</div>
+              <span class="category-tag">Send Message</span>
+              <h2>Let's Connect</h2>
+              <p class="section-subtitle">Get Started</p>
+              <p>Click below to start a conversation with our team. We typically respond within 24 hours.</p>
+              <div class="contact-cta">
+                <a href="mailto:hello@hexagon.pro" class="cta-button">Contact Us</a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Progress indicator -->
+          <div class="flip-progress">
+            <span class="progress-dot active" data-page="1"></span>
+            <span class="progress-dot" data-page="2"></span>
+            <span class="progress-dot" data-page="3"></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Logo Marquee Section - Footer üstünde -->
+    <section class="logo-marquee-section" id="partners">
+      <div class="content-box hexagon-card marquee-card">
+        <span class="category-tag">Partners</span>
+        <h2>Trusted By</h2>
+        <div class="logo-marquee" id="logo-marquee">
+          <div class="marquee-track"></div>
         </div>
       </div>
     </section>
 
     <footer id="footer">
-      <div class="footer-content">
-        <div class="footer-logo-placeholder"></div>
+      <div class="content-box hexagon-card footer-card">
         <div class="footer-grid">
           <div class="footer-column">
             <h3>HEXAGON</h3>

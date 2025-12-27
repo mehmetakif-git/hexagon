@@ -4,164 +4,182 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 class TracingBeam {
   constructor() {
     this.container = null;
-    this.svg = null;
-    this.pathActive = null;
-    this.pathBg = null;
-    this.gradient = null;
+    this.progressLine = null;
+    this.progressFill = null;
     this.dot = null;
-    this.pathLength = 0;
-    this.totalHeight = 0;
+    this.markerList = null;
     this.sections = [];
-    this.markers = null;
+    this.currentIndex = 0;
 
     this.init();
   }
 
   init() {
-    this.createElements();
     this.collectSections();
-    this.createPath();
+
+    if (this.sections.length === 0) {
+      console.warn('TracingBeam: No sections found');
+      return;
+    }
+
+    this.createElements();
     this.setupScrollTrigger();
+
     window.addEventListener('resize', () => this.onResize());
+  }
+
+  collectSections() {
+    this.sections = [];
+
+    const sectionConfig = [
+      { id: 'hero', label: 'HOME', icon: '⬡' },
+      { id: 'about', label: 'ABOUT', icon: '◆' },
+      { id: 'events', label: 'EVENTS', icon: '◆' },
+      { id: 'media', label: 'MEDIA', icon: '◆' },
+      { id: 'digital', label: 'DIGITAL', icon: '◆' },
+      { id: 'consultancy', label: 'CONSULT', icon: '◆' },
+      { id: 'contact', label: 'CONTACT', icon: '◇' }
+    ];
+
+    sectionConfig.forEach(config => {
+      const element = document.getElementById(config.id);
+      if (element) {
+        this.sections.push({
+          element,
+          id: config.id,
+          label: config.label,
+          icon: config.icon
+        });
+      }
+    });
   }
 
   createElements() {
     this.container = document.createElement('div');
     this.container.id = 'tracing-beam-container';
+
+    // Create the beam structure
     this.container.innerHTML = `
-      <div class="beam-dot">
-        <div class="beam-dot-inner"></div>
-        <div class="beam-dot-pulse"></div>
+      <div class="beam-line">
+        <div class="beam-line-bg"></div>
+        <div class="beam-line-fill"></div>
+        <div class="beam-dot">
+          <div class="beam-dot-inner"></div>
+          <div class="beam-dot-pulse"></div>
+        </div>
       </div>
-      <svg id="tracing-beam-svg" preserveAspectRatio="none">
-        <defs>
-          <linearGradient id="beam-gradient" gradientUnits="userSpaceOnUse" x1="0" x2="0">
-            <stop offset="0%" stop-color="#FF8106" stop-opacity="0"></stop>
-            <stop offset="30%" stop-color="#FF8106" stop-opacity="1"></stop>
-            <stop offset="50%" stop-color="#FFCC66" stop-opacity="1"></stop>
-            <stop offset="70%" stop-color="#FF8106" stop-opacity="1"></stop>
-            <stop offset="100%" stop-color="#FF8106" stop-opacity="0"></stop>
-          </linearGradient>
-          <filter id="beam-glow">
-            <feGaussianBlur stdDeviation="4" result="blur"></feGaussianBlur>
-            <feMerge>
-              <feMergeNode in="blur"></feMergeNode>
-              <feMergeNode in="SourceGraphic"></feMergeNode>
-            </feMerge>
-          </filter>
-        </defs>
-        <path id="beam-path-bg" fill="none" stroke="rgba(255, 129, 6, 0.08)" stroke-width="2"></path>
-        <path id="beam-path-active" fill="none" stroke="url(#beam-gradient)" stroke-width="2.5" filter="url(#beam-glow)"></path>
-      </svg>
-      <div class="beam-markers"></div>
+      <nav class="beam-markers"></nav>
     `;
-    document.body.prepend(this.container);
 
-    this.svg = document.getElementById('tracing-beam-svg');
-    this.pathBg = document.getElementById('beam-path-bg');
-    this.pathActive = document.getElementById('beam-path-active');
-    this.gradient = document.getElementById('beam-gradient');
+    document.body.appendChild(this.container);
+
+    this.progressFill = this.container.querySelector('.beam-line-fill');
     this.dot = this.container.querySelector('.beam-dot');
-    this.markers = this.container.querySelector('.beam-markers');
-  }
+    this.markerList = this.container.querySelector('.beam-markers');
 
-  collectSections() {
-    const hero = document.querySelector('.hero');
-    const serviceSections = document.querySelectorAll('.service-section');
-    const footer = document.getElementById('footer');
-
-    this.sections = [];
-
-    if (hero) this.sections.push({ element: hero, label: 'HOME', icon: '⬡' });
-
-    const labels = ['ABOUT', 'EVENT', 'MEDIA', 'DIGITAL', 'CONSULT', 'CONTACT'];
-    serviceSections.forEach((section, i) => {
-      this.sections.push({ element: section, label: labels[i] || `SEC${i+1}`, icon: '◆' });
-    });
-
-    if (footer) this.sections.push({ element: footer, label: 'FOOTER', icon: '◇' });
-  }
-
-  createPath() {
-    this.totalHeight = document.documentElement.scrollHeight;
-    this.svg.style.height = `${this.totalHeight}px`;
-    this.svg.setAttribute('viewBox', `0 0 50 ${this.totalHeight}`);
-
-    // Zigzag path
-    let path = `M 25 0`;
-
+    // Create markers
     this.sections.forEach((section, index) => {
-      const rect = section.element.getBoundingClientRect();
-      const top = rect.top + window.scrollY;
-      const x = index % 2 === 0 ? 15 : 35;
+      const marker = document.createElement('a');
+      marker.className = 'beam-marker';
+      marker.href = `#${section.id}`;
+      marker.dataset.index = index;
+      marker.innerHTML = `
+        <span class="marker-icon">${section.icon}</span>
+        <span class="marker-label">${section.label}</span>
+      `;
 
-      path += ` L ${x} ${top + rect.height / 2}`;
-      this.addMarker(section, top + rect.height / 2);
+      marker.addEventListener('click', (e) => {
+        e.preventDefault();
+        section.element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        history.pushState(null, '', `#${section.id}`);
+      });
+
+      this.markerList.appendChild(marker);
     });
 
-    path += ` L 25 ${this.totalHeight}`;
-
-    this.pathBg.setAttribute('d', path);
-    this.pathActive.setAttribute('d', path);
-
-    this.pathLength = this.pathActive.getTotalLength();
-    this.pathActive.style.strokeDasharray = this.pathLength;
-    this.pathActive.style.strokeDashoffset = this.pathLength;
-  }
-
-  addMarker(section, yPos) {
-    const marker = document.createElement('div');
-    marker.className = 'beam-marker';
-    marker.innerHTML = `<span class="marker-icon">${section.icon}</span><span class="marker-label">${section.label}</span>`;
-    marker.style.top = `${yPos}px`;
-    marker.addEventListener('click', () => section.element.scrollIntoView({ behavior: 'smooth' }));
-    this.markers.appendChild(marker);
+    // Set initial active
+    this.setActiveMarker(0);
   }
 
   setupScrollTrigger() {
-    gsap.to(this.pathActive, {
-      strokeDashoffset: 0,
-      ease: 'none',
-      scrollTrigger: {
-        trigger: document.body,
-        start: 'top top',
-        end: 'bottom bottom',
-        scrub: 1,
-        onUpdate: (self) => this.updateBeam(self.progress)
+    // Overall scroll progress
+    ScrollTrigger.create({
+      trigger: document.body,
+      start: 'top top',
+      end: 'bottom bottom',
+      onUpdate: (self) => {
+        this.updateProgress(self.progress);
       }
     });
 
+    // Section tracking
     this.sections.forEach((section, index) => {
       ScrollTrigger.create({
         trigger: section.element,
         start: 'top center',
         end: 'bottom center',
-        onEnter: () => this.activateMarker(index),
-        onEnterBack: () => this.activateMarker(index)
+        onEnter: () => this.setActiveMarker(index),
+        onEnterBack: () => this.setActiveMarker(index)
       });
     });
+
+    // Initial active based on scroll position
+    this.updateActiveOnLoad();
   }
 
-  updateBeam(progress) {
-    const currentY = progress * this.totalHeight;
-    this.gradient.setAttribute('y1', currentY - 150);
-    this.gradient.setAttribute('y2', currentY + 150);
+  updateProgress(progress) {
+    // Update fill height
+    if (this.progressFill) {
+      this.progressFill.style.height = `${progress * 100}%`;
+    }
 
-    if (this.pathLength > 0) {
-      const point = this.pathActive.getPointAtLength(progress * this.pathLength);
-      this.dot.style.transform = `translate(${point.x - 10}px, ${point.y - 10}px)`;
+    // Update dot position
+    if (this.dot) {
+      const lineHeight = this.container.querySelector('.beam-line').offsetHeight;
+      const dotY = progress * lineHeight;
+      this.dot.style.top = `${dotY}px`;
     }
   }
 
-  activateMarker(index) {
-    this.markers.querySelectorAll('.beam-marker').forEach((m, i) => {
-      m.classList.toggle('active', i === index);
+  setActiveMarker(index) {
+    this.currentIndex = index;
+    const markers = this.markerList.querySelectorAll('.beam-marker');
+
+    markers.forEach((marker, i) => {
+      marker.classList.remove('active', 'passed');
+      if (i === index) {
+        marker.classList.add('active');
+      } else if (i < index) {
+        marker.classList.add('passed');
+      }
     });
   }
 
+  updateActiveOnLoad() {
+    const scrollY = window.scrollY;
+    const viewportCenter = scrollY + window.innerHeight / 2;
+
+    let activeIndex = 0;
+
+    this.sections.forEach((section, index) => {
+      const rect = section.element.getBoundingClientRect();
+      const sectionTop = rect.top + scrollY;
+      const sectionBottom = sectionTop + rect.height;
+
+      if (viewportCenter >= sectionTop && viewportCenter <= sectionBottom) {
+        activeIndex = index;
+      }
+    });
+
+    this.setActiveMarker(activeIndex);
+
+    // Update progress
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const progress = docHeight > 0 ? scrollY / docHeight : 0;
+    this.updateProgress(progress);
+  }
+
   onResize() {
-    this.markers.innerHTML = '';
-    this.createPath();
     ScrollTrigger.refresh();
   }
 }

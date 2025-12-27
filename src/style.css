@@ -313,43 +313,27 @@ p {
 
 /* Footer Styles */
 #footer {
-  min-height: 80vh;
+  min-height: auto;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 4rem 2rem;
-  margin-top: 10vh;
+  padding: 1rem 2rem 3rem 2rem;
+  margin-top: 2vh;
 }
 
-.footer-content {
-  width: 100%;
-  max-width: 1000px;
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 40px;
-  padding: 5rem 4rem 4rem 4rem;
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.footer-logo-placeholder {
-  height: 250px;
-  /* Space for the 3D Logo to settle into */
-  width: 100%;
-  margin-bottom: 2rem;
+/* Footer uses content-box hexagon-card styling */
+.footer-card {
+  max-width: 800px;
+  width: 90%;
+  padding: 2rem 3rem !important;
 }
 
 .footer-grid {
   display: grid;
   grid-template-columns: 2fr 1fr 1fr;
-  gap: 4rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  padding-top: 3rem;
+  gap: 3rem;
+  border-top: none;
+  padding-top: 0;
   width: 100%;
 }
 
@@ -376,13 +360,16 @@ p {
 }
 
 .footer-bottom {
-  margin-top: 4rem;
-  padding-top: 2rem;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
   border-top: 1px solid rgba(255, 255, 255, 0.05);
   text-align: center;
   opacity: 0.4;
   font-size: 0.8rem;
   width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 @media (max-width: 768px) {
@@ -393,6 +380,145 @@ p {
 
   .footer-content {
     padding: 2rem;
+  }
+}
+
+/* ========================================
+   LOGO MARQUEE - Partner Logos
+   ======================================== */
+
+.logo-marquee-section {
+  min-height: auto;
+  padding: 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Marquee card specific styles */
+.marquee-card {
+  max-width: 900px;
+  width: 90%;
+  text-align: center;
+  padding: 2rem 1rem !important;
+}
+
+.marquee-card h2 {
+  margin-bottom: 0.25rem;
+}
+
+.marquee-card .section-subtitle {
+  margin-bottom: 1.5rem;
+}
+
+/* Marquee Container */
+.logo-marquee {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  --marquee-gap: 50px;
+  --marquee-logo-height: 45px;
+}
+
+/* Track - sonsuz döngü */
+.marquee-track {
+  display: flex;
+  width: max-content;
+  will-change: transform;
+  user-select: none;
+}
+
+/* Logo listesi */
+.marquee-list {
+  display: flex;
+  align-items: center;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* Her logo item */
+.marquee-item {
+  flex: 0 0 auto;
+  margin-right: var(--marquee-gap);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.marquee-item:hover {
+  transform: scale(1.15);
+}
+
+/* Logo görselleri */
+.marquee-item img {
+  height: var(--marquee-logo-height);
+  width: auto;
+  display: block;
+  object-fit: contain;
+  filter: grayscale(100%) brightness(0.7);
+  opacity: 0.6;
+  transition: all 0.3s ease;
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+
+.marquee-item:hover img {
+  filter: grayscale(0%) brightness(1);
+  opacity: 1;
+}
+
+/* Text/SVG logolar için */
+.marquee-item .logo-text {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.4);
+  letter-spacing: 2px;
+  white-space: nowrap;
+  transition: all 0.3s ease;
+}
+
+.marquee-item:hover .logo-text {
+  color: var(--primary);
+  text-shadow: 0 0 20px rgba(255, 129, 6, 0.5);
+}
+
+/* Link wrapper */
+.marquee-link {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.marquee-link:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .logo-marquee {
+    --marquee-gap: 40px;
+    --marquee-logo-height: 32px;
+  }
+
+  .logo-marquee-section {
+    padding: 2rem 0;
+  }
+
+  .marquee-item .logo-text {
+    font-size: 0.8rem;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track {
+    animation: none !important;
+    transform: none !important;
   }
 }
 
@@ -1119,33 +1245,61 @@ p {
 }
 
 /* ========================================
-   TRACING BEAM - Scroll Progress Line
+   TRACING BEAM - Scroll Progress Navigation
    ======================================== */
 
 #tracing-beam-container {
   position: fixed;
-  left: 30px;
-  top: 0;
-  width: 50px;
-  height: 100vh;
-  z-index: 100;
-  pointer-events: none;
+  left: 25px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1000;
+  display: flex;
+  align-items: stretch;
+  gap: 15px;
+  height: 70vh;
+  max-height: 550px;
 }
 
-#tracing-beam-svg {
+/* Beam Line with Animated Dot */
+.beam-line {
+  position: relative;
+  width: 4px;
+  height: 100%;
+}
+
+.beam-line-bg {
   position: absolute;
-  left: 0;
   top: 0;
-  width: 50px;
-  overflow: visible;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 129, 6, 0.1);
+  border-radius: 4px;
 }
 
-/* Hareket eden nokta */
+.beam-line-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 0%;
+  background: linear-gradient(to bottom, #FF8106, #FFCC66);
+  border-radius: 4px;
+  transition: height 0.15s ease-out;
+  box-shadow: 0 0 15px rgba(255, 129, 6, 0.4);
+}
+
+/* Glowing Animated Dot */
 .beam-dot {
   position: absolute;
-  width: 20px;
-  height: 20px;
+  left: 50%;
+  top: 0;
+  transform: translateX(-50%);
+  width: 28px;
+  height: 28px;
   z-index: 10;
+  transition: top 0.15s ease-out;
 }
 
 .beam-dot-inner {
@@ -1153,11 +1307,14 @@ p {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 10px;
-  height: 10px;
+  width: 14px;
+  height: 14px;
   background: #FF8106;
   border-radius: 50%;
-  box-shadow: 0 0 10px #FF8106, 0 0 20px #FF8106, 0 0 30px rgba(255, 129, 6, 0.5);
+  box-shadow:
+    0 0 10px #FF8106,
+    0 0 20px #FF8106,
+    0 0 35px rgba(255, 129, 6, 0.5);
 }
 
 .beam-dot-pulse {
@@ -1165,88 +1322,154 @@ p {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 20px;
-  height: 20px;
+  width: 28px;
+  height: 28px;
   background: rgba(255, 129, 6, 0.3);
   border-radius: 50%;
   animation: beam-pulse 2s ease-in-out infinite;
 }
 
 @keyframes beam-pulse {
-  0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
-  50% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
+  0%, 100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.8);
+    opacity: 0;
+  }
 }
 
-/* Marker'lar */
+/* Marker Navigation */
 .beam-markers {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
   height: 100%;
+  padding: 8px 0;
 }
 
 .beam-marker {
-  position: absolute;
-  left: 50px;
-  transform: translateY(-50%);
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 12px;
-  background: rgba(5, 5, 5, 0.8);
-  border: 1px solid rgba(255, 129, 6, 0.2);
-  border-radius: 20px;
+  gap: 10px;
+  padding: 8px 16px;
+  background: rgba(10, 10, 10, 0.85);
+  border: 1px solid rgba(255, 129, 6, 0.15);
+  border-radius: 25px;
   cursor: pointer;
-  pointer-events: auto;
-  opacity: 0.4;
+  text-decoration: none;
   transition: all 0.3s ease;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 }
 
 .beam-marker:hover {
-  opacity: 1;
-  transform: translateY(-50%) translateX(5px);
+  background: rgba(255, 129, 6, 0.12);
+  border-color: rgba(255, 129, 6, 0.4);
+  transform: translateX(5px);
 }
 
-.beam-marker.active {
-  opacity: 1;
-  border-color: #FF8106;
-  background: rgba(255, 129, 6, 0.15);
-  box-shadow: 0 0 20px rgba(255, 129, 6, 0.3);
-}
-
+/* Marker Icon */
 .marker-icon {
-  font-size: 12px;
-  color: #FF8106;
+  font-size: 14px;
+  color: rgba(255, 129, 6, 0.5);
+  transition: all 0.3s ease;
+  flex-shrink: 0;
 }
 
+/* Marker Label */
 .marker-label {
   font-size: 10px;
-  font-weight: bold;
+  font-weight: 600;
   letter-spacing: 1px;
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(255, 255, 255, 0.4);
   text-transform: uppercase;
   font-family: 'Orbitron', sans-serif;
+  white-space: nowrap;
+  transition: all 0.3s ease;
+}
+
+/* Passed State */
+.beam-marker.passed .marker-icon {
+  color: rgba(255, 129, 6, 0.7);
+}
+
+.beam-marker.passed .marker-label {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+/* Active State */
+.beam-marker.active {
+  background: rgba(255, 129, 6, 0.18);
+  border-color: #FF8106;
+  box-shadow: 0 0 20px rgba(255, 129, 6, 0.25);
+  transform: translateX(3px);
+}
+
+.beam-marker.active .marker-icon {
+  color: #FF8106;
+  text-shadow: 0 0 10px rgba(255, 129, 6, 0.8);
 }
 
 .beam-marker.active .marker-label {
   color: #FF8106;
 }
 
-/* Mobil responsive */
-@media (max-width: 768px) {
+/* Tablet responsive */
+@media (max-width: 1024px) {
   #tracing-beam-container {
-    left: 10px;
-    width: 30px;
+    left: 15px;
+    height: 60vh;
+    max-height: 450px;
+    gap: 12px;
   }
 
   .beam-marker {
-    left: 35px;
+    padding: 7px 14px;
   }
 
   .marker-label {
+    font-size: 9px;
+  }
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  #tracing-beam-container {
+    left: 10px;
+    height: 55vh;
+    max-height: 380px;
+    gap: 10px;
+  }
+
+  .marker-label {
+    display: none;
+  }
+
+  .beam-marker {
+    padding: 10px;
+    border-radius: 50%;
+  }
+
+  .marker-icon {
+    font-size: 12px;
+  }
+
+  .beam-dot-inner {
+    width: 12px;
+    height: 12px;
+  }
+
+  .beam-dot-pulse {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+/* Small mobile - hide */
+@media (max-width: 480px) {
+  #tracing-beam-container {
     display: none;
   }
 }

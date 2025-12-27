@@ -1144,16 +1144,16 @@ function setupScrollAnimations() {
 
   // Footer transition WITH ROTATION (last 10%)
   masterTl.to(hexagonGroup.position, {
-    x: 0, y: -2.8, z: 1.8,
+    x: 0, y: -1.5, z: 2,
     duration: 0.1,
     ease: "power2.inOut"
   }, 0.9);
   masterTl.to(hexagonGroup.scale, {
-    x: 1.1, y: 1.1, z: 1.1,
+    x: 1.3, y: 1.3, z: 1.3,
     duration: 0.1,
     ease: "power2.inOut"
   }, 0.9);
-  // Half rotation while going to footer (180°) - Total: 2 full rotations
+  // Complete 2 full rotations at the end
   masterTl.to(hexagonGroup.rotation, {
     z: -Math.PI * 4,
     duration: 0.1,
@@ -1161,9 +1161,10 @@ function setupScrollAnimations() {
   }, 0.9);
 
   // 3. Individual card animations synced with hexagon rotation
-  // Skip About Us (index 0) - it has custom flip animation in initAboutModulesFlip
+  // Skip flip-section cards (About Us index 0, Event index 1) - they have custom flip animation
   serviceSections.forEach((section, index) => {
-    if (index === 0) return; // Skip About Us section
+    // Skip sections that use flip card system
+    if (section.classList.contains('flip-section')) return;
 
     const card = section.querySelector('.content-box');
 
@@ -1433,4 +1434,205 @@ if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initializeUI);
 } else {
   initializeUI();
+}
+
+// ========================================
+// LOGO MARQUEE SYSTEM
+// ========================================
+
+class LogoMarquee {
+  constructor(container, options = {}) {
+    this.container = container;
+    this.track = container.querySelector('.marquee-track');
+
+    // Settings
+    this.speed = options.speed || 80;
+    this.direction = options.direction || 'left';
+    this.pauseOnHover = options.pauseOnHover ?? true;
+    this.hoverSpeed = options.hoverSpeed ?? 0;
+    this.logos = options.logos || [];
+
+    // State
+    this.offset = 0;
+    this.velocity = this.speed;
+    this.targetVelocity = this.speed;
+    this.isHovered = false;
+    this.seqWidth = 0;
+    this.rafId = null;
+    this.lastTimestamp = null;
+
+    // Smooth easing factor
+    this.smoothTau = 0.25;
+
+    this.init();
+  }
+
+  init() {
+    this.renderLogos();
+    this.setupEvents();
+    requestAnimationFrame(() => {
+      this.calculateDimensions();
+      this.startAnimation();
+    });
+  }
+
+  renderLogos() {
+    if (!this.track || this.logos.length === 0) return;
+
+    const list = this.createLogoList();
+    this.track.innerHTML = '';
+    this.track.appendChild(list);
+  }
+
+  createLogoList(isClone = false) {
+    const ul = document.createElement('ul');
+    ul.className = 'marquee-list';
+    if (isClone) ul.setAttribute('aria-hidden', 'true');
+
+    this.logos.forEach((logo) => {
+      const li = document.createElement('li');
+      li.className = 'marquee-item';
+
+      let content;
+
+      if (logo.src) {
+        const img = document.createElement('img');
+        img.src = logo.src;
+        img.alt = logo.alt || '';
+        img.loading = 'lazy';
+        img.draggable = false;
+        content = img;
+      } else if (logo.text) {
+        const span = document.createElement('span');
+        span.className = 'logo-text';
+        span.textContent = logo.text;
+        content = span;
+      }
+
+      if (logo.href && content) {
+        const link = document.createElement('a');
+        link.className = 'marquee-link';
+        link.href = logo.href;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        link.setAttribute('aria-label', logo.alt || logo.text || 'Partner link');
+        link.appendChild(content);
+        li.appendChild(link);
+      } else if (content) {
+        li.appendChild(content);
+      }
+
+      ul.appendChild(li);
+    });
+
+    return ul;
+  }
+
+  calculateDimensions() {
+    const firstList = this.track.querySelector('.marquee-list');
+    if (!firstList) return;
+
+    this.seqWidth = firstList.offsetWidth;
+
+    const containerWidth = this.container.offsetWidth;
+    const copiesNeeded = Math.ceil(containerWidth / this.seqWidth) + 2;
+
+    const lists = this.track.querySelectorAll('.marquee-list');
+    lists.forEach((list, i) => {
+      if (i > 0) list.remove();
+    });
+
+    for (let i = 1; i < copiesNeeded; i++) {
+      const clone = this.createLogoList(true);
+      this.track.appendChild(clone);
+    }
+  }
+
+  setupEvents() {
+    this.track.addEventListener('mouseenter', () => {
+      this.isHovered = true;
+      this.targetVelocity = this.hoverSpeed;
+    });
+
+    this.track.addEventListener('mouseleave', () => {
+      this.isHovered = false;
+      this.targetVelocity = this.speed;
+    });
+
+    window.addEventListener('resize', () => {
+      this.calculateDimensions();
+    });
+
+    const images = this.track.querySelectorAll('img');
+    images.forEach(img => {
+      img.addEventListener('load', () => {
+        this.calculateDimensions();
+      });
+    });
+  }
+
+  startAnimation() {
+    const animate = (timestamp) => {
+      if (this.lastTimestamp === null) {
+        this.lastTimestamp = timestamp;
+      }
+
+      const deltaTime = Math.max(0, timestamp - this.lastTimestamp) / 1000;
+      this.lastTimestamp = timestamp;
+
+      const easingFactor = 1 - Math.exp(-deltaTime / this.smoothTau);
+      this.velocity += (this.targetVelocity - this.velocity) * easingFactor;
+
+      if (this.seqWidth > 0) {
+        const dirMultiplier = this.direction === 'left' ? 1 : -1;
+        this.offset += this.velocity * deltaTime * dirMultiplier;
+        this.offset = ((this.offset % this.seqWidth) + this.seqWidth) % this.seqWidth;
+        this.track.style.transform = `translate3d(${-this.offset}px, 0, 0)`;
+      }
+
+      this.rafId = requestAnimationFrame(animate);
+    };
+
+    this.rafId = requestAnimationFrame(animate);
+  }
+
+  destroy() {
+    if (this.rafId) {
+      cancelAnimationFrame(this.rafId);
+    }
+  }
+}
+
+// Initialize Logo Marquee
+function initLogoMarquee() {
+  const marqueeContainer = document.getElementById('logo-marquee');
+  if (!marqueeContainer) return;
+
+  // Logo görselleri - public/assets/logos/ klasörüne koy
+  // Desteklenen formatlar: PNG, SVG, JPG, WEBP
+  // Önerilen boyut: yükseklik 80-120px, şeffaf arka plan (PNG/SVG)
+  const logos = [
+    { src: '/assets/logos/katara.webp', alt: 'Katara' },
+    { src: '/assets/logos/workinton.webp', alt: 'Workinton' },
+    { src: '/assets/logos/qatar-university.webp', alt: 'Qatar University' },
+    { src: '/assets/logos/qatar.webp', alt: 'Qatar' },
+    { src: '/assets/logos/bmc.webp', alt: 'BMC' },
+    { src: '/assets/logos/development-by-udc.webp', alt: 'Development by UDC' },
+    { src: '/assets/logos/qnb-finansbank.webp', alt: 'QNB Finansbank' },
+  ];
+
+  new LogoMarquee(marqueeContainer, {
+    logos: logos,
+    speed: 50,
+    direction: 'left',
+    pauseOnHover: true,
+    hoverSpeed: 0
+  });
+}
+
+// Initialize marquee when DOM ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initLogoMarquee);
+} else {
+  initLogoMarquee();
 }
