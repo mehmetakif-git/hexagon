@@ -11,6 +11,9 @@
 <body>
   <div id="app"></div>
 
+  <!-- Blur overlay for About Us card - MUST be at body level, no transforms -->
+  <div class="flip-blur-overlay" id="flip-blur-overlay"></div>
+
   <main id="content">
     <section class="hero">
       <div class="container">
@@ -19,20 +22,120 @@
       </div>
     </section>
 
-    <!-- Service 1: About Us -->
-    <section class="service-section" data-index="1">
-      <div class="content-box hexagon-card">
-        <div class="card-edge-indicator">01</div>
-        <span class="category-tag">Our Story</span>
-        <h2>About Us</h2>
-        <p class="section-subtitle">The Vision Behind Hexagon</p>
-        <p>Born from a passion for innovation and excellence, Hexagon brings together industry veterans and creative minds to deliver extraordinary experiences.</p>
-        <ul class="feature-grid">
-          <li><span class="feature-icon">◆</span> Company Vision</li>
-          <li><span class="feature-icon">◆</span> Core Values</li>
-          <li><span class="feature-icon">◆</span> Our Team</li>
-          <li><span class="feature-icon">◆</span> Why Choose Us</li>
-        </ul>
+    <!-- Service 1: About Us - Multi-page flip card -->
+    <section class="service-section flip-section" data-index="1">
+      <div class="flip-card-container">
+        <div class="flip-card">
+          <!-- Page 1: Our Story -->
+          <div class="flip-page" data-page="1">
+            <div class="content-box hexagon-card">
+              <div class="card-edge-indicator">01</div>
+              <span class="category-tag">Our Story</span>
+              <h2>About Us</h2>
+              <p class="section-subtitle">The Origin Story</p>
+              <ul class="feature-grid">
+                <li><span class="feature-icon">◆</span> Born in the desert from the dream of a few friends</li>
+                <li><span class="feature-icon">◆</span> Multi-faceted and multicultural team of superheroes</li>
+                <li><span class="feature-icon">◆</span> Creating happiness through meaningful connections</li>
+                <li><span class="feature-icon">◆</span> Transforming visions into unforgettable realities</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Page 2: Vision & Mission -->
+          <div class="flip-page" data-page="2">
+            <div class="content-box hexagon-card">
+              <div class="card-edge-indicator">01</div>
+              <span class="category-tag">Vision & Mission</span>
+              <h2>About Us</h2>
+              <p class="section-subtitle">Our Purpose</p>
+              <div class="vision-mission">
+                <div class="vm-item">
+                  <span class="vm-label">Vision</span>
+                  <p>Create happiness by helping brands express themselves through meaningful connections and memorable experiences.</p>
+                </div>
+                <div class="vm-item">
+                  <span class="vm-label">Mission</span>
+                  <p>Inspire creativity, spread joy and ignite imagination — one post, one caption, one website and one event at a time.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Page 3: Our Process -->
+          <div class="flip-page" data-page="3">
+            <div class="content-box hexagon-card">
+              <div class="card-edge-indicator">01</div>
+              <span class="category-tag">Our Process</span>
+              <h2>About Us</h2>
+              <p class="section-subtitle">How We Work</p>
+              <ul class="process-list">
+                <li><span class="process-num">01</span><strong>The Lab</strong> - Study brand DNA to find the best formula</li>
+                <li><span class="process-num">02</span><strong>The Kitchen</strong> - Cook brilliant ideas with our secret ingredient</li>
+                <li><span class="process-num">03</span><strong>The Studio</strong> - Design immersive experiences</li>
+                <li><span class="process-num">04</span><strong>The Field</strong> - Bring stories to life</li>
+                <li><span class="process-num">05</span><strong>Command Center</strong> - Optimize engagement</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Page 4: Leadership -->
+          <div class="flip-page" data-page="4">
+            <div class="content-box hexagon-card">
+              <div class="card-edge-indicator">01</div>
+              <span class="category-tag">Leadership</span>
+              <h2>About Us</h2>
+              <p class="section-subtitle">Our Team</p>
+              <div class="team-grid-flip">
+                <div class="team-member-flip">
+                  <strong>Mohamed Khalifa Al Sada</strong>
+                  <span>Chairman & Founding Partner</span>
+                </div>
+                <div class="team-member-flip">
+                  <strong>Ali Boray Dundar</strong>
+                  <span>Founding Partner</span>
+                </div>
+                <div class="team-member-flip">
+                  <strong>Markus Katterle</strong>
+                  <span>Founding Partner</span>
+                </div>
+                <div class="team-member-flip">
+                  <strong>Alihan Tokmak</strong>
+                  <span>Managing Partner</span>
+                </div>
+                <div class="team-member-flip">
+                  <strong>Gulsah Uzun</strong>
+                  <span>Events Business Director</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Page 5: Culture -->
+          <div class="flip-page" data-page="5">
+            <div class="content-box hexagon-card">
+              <div class="card-edge-indicator">01</div>
+              <span class="category-tag">Culture</span>
+              <h2>About Us</h2>
+              <p class="section-subtitle">Life at Hexagon</p>
+              <ul class="culture-list">
+                <li><span class="culture-icon-flip">◆</span> Multi-cultural environment with global perspectives</li>
+                <li><span class="culture-icon-flip">◆</span> Creative thinking and problem-solving focus</li>
+                <li><span class="culture-icon-flip">◆</span> Continuous learning and growth mindset</li>
+                <li><span class="culture-icon-flip">◆</span> Where creativity meets passion</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Progress indicator - inside flip-card -->
+          <div class="flip-progress">
+            <span class="progress-dot active" data-page="1"></span>
+            <span class="progress-dot" data-page="2"></span>
+            <span class="progress-dot" data-page="3"></span>
+            <span class="progress-dot" data-page="4"></span>
+            <span class="progress-dot" data-page="5"></span>
+          </div>
+        </div>
       </div>
     </section>
 

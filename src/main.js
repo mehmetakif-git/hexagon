@@ -6,9 +6,9 @@ import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPa
 import { SVGLoader } from 'three/examples/jsm/loaders/SVGLoader.js'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { SaberSlashEffect } from './SaberSlashEffect.js'
+import { ScrollToPlugin } from 'gsap/ScrollToPlugin'
 
-gsap.registerPlugin(ScrollTrigger);
+gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
 // Force scroll to top on page load/refresh
 window.history.scrollRestoration = 'manual';
@@ -100,11 +100,10 @@ scene.add(bgGroup);
 const loader = new SVGLoader();
 let hexagonGroup;
 let hexagonTextMesh = null;
-let saberEffect = null;
 
-// Service text labels for each section
-const serviceTexts = ['HEXAGON', 'ABOUT', 'EVENT', 'MEDIA', 'DIGITAL', 'CONSULT', 'CONTACT'];
-let currentTextIndex = 0;
+// Service text labels for each section (index 0 not used - hero has no text)
+const serviceTexts = ['', 'ABOUT', 'EVENT', 'MEDIA', 'DIGITAL', 'CONSULT', 'CONTACT'];
+let currentTextIndex = -1; // -1 means no text (hero state)
 
 // Text material (glowing orange)
 const textMaterial = new THREE.MeshStandardMaterial({
@@ -117,6 +116,9 @@ const textMaterial = new THREE.MeshStandardMaterial({
 
 // Array to hold all 6 edge text planes
 let hexagonTextMeshes = [];
+
+// Array to hold laser shader materials for animation
+let currentTextMaterials = [];
 
 // Create bump map texture from text (canvas-based)
 function createBumpMap(text) {
@@ -232,8 +234,90 @@ function createDiffuseMap(text) {
   return texture;
 }
 
-// Create embossed text on hexagon edges using texture maps
-function createHexagonText(text) {
+// Create laser draw shader material for text
+function createLaserDrawMaterial(text) {
+  const diffuseMap = createDiffuseMap(text);
+  const alphaMap = createAlphaMap(text);
+
+  return new THREE.ShaderMaterial({
+    uniforms: {
+      map: { value: diffuseMap },
+      alphaMap: { value: alphaMap },
+      drawProgress: { value: 1.0 },  // 0 = invisible, 1 = fully drawn (start visible)
+      laserColor: { value: new THREE.Color(0xFFAA33) },
+      laserCoreColor: { value: new THREE.Color(0xFFFFFF) },
+      laserWidth: { value: 0.12 },
+      glowIntensity: { value: 3.0 },
+      time: { value: 0.0 }
+    },
+    vertexShader: `
+      varying vec2 vUv;
+      void main() {
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `
+      uniform sampler2D map;
+      uniform sampler2D alphaMap;
+      uniform float drawProgress;
+      uniform vec3 laserColor;
+      uniform vec3 laserCoreColor;
+      uniform float laserWidth;
+      uniform float glowIntensity;
+      uniform float time;
+      varying vec2 vUv;
+
+      // Noise function for sparks
+      float random(vec2 st) {
+        return fract(sin(dot(st.xy, vec2(12.9898, 78.233))) * 43758.5453123);
+      }
+
+      void main() {
+        vec4 texColor = texture2D(map, vUv);
+        float textAlpha = texture2D(alphaMap, vUv).r;
+
+        // Draw mask - areas where UV.x < drawProgress are visible
+        float drawMask = 1.0 - smoothstep(drawProgress - 0.02, drawProgress, vUv.x);
+
+        // Laser position
+        float laserDist = abs(vUv.x - drawProgress);
+        float laserCore = smoothstep(laserWidth * 0.2, 0.0, laserDist);
+        float laserGlow = smoothstep(laserWidth, 0.0, laserDist);
+        float laserOuterGlow = smoothstep(laserWidth * 2.0, 0.0, laserDist) * 0.3;
+
+        // Laser only on text and during drawing (not at 0 or 1)
+        float laserMask = textAlpha * step(0.02, drawProgress) * step(drawProgress, 0.98);
+
+        // Flicker effect
+        float flicker = 0.85 + 0.15 * sin(time * 40.0 + vUv.x * 80.0);
+
+        // Spark particles near laser
+        float sparkNoise = random(vUv + vec2(time * 10.0, 0.0));
+        float sparkMask = step(0.92, sparkNoise) * laserGlow * laserMask;
+        vec3 sparkColor = laserCoreColor * sparkMask * 2.0;
+
+        // Final colors
+        vec3 textFinal = texColor.rgb * drawMask * textAlpha;
+        vec3 laserFinal = mix(laserColor, laserCoreColor, laserCore) * laserGlow * laserMask * glowIntensity * flicker;
+        vec3 outerGlowFinal = laserColor * laserOuterGlow * laserMask * glowIntensity * 0.5;
+
+        vec3 finalColor = textFinal + laserFinal + outerGlowFinal + sparkColor;
+        float finalAlpha = max(textAlpha * drawMask, max(laserGlow * laserMask * 0.9, laserOuterGlow * laserMask));
+
+        if (finalAlpha < 0.01) discard;
+        gl_FragColor = vec4(finalColor, finalAlpha);
+      }
+    `,
+    transparent: true,
+    side: THREE.DoubleSide,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending
+  });
+}
+
+// Create embossed text on hexagon edges using laser shader
+function createHexagonText(text, initialProgress = 1.0) {
   if (!hexagonGroup) {
     console.log('Cannot create text - hexagon not ready');
     return;
@@ -245,33 +329,28 @@ function createHexagonText(text) {
     return;
   }
 
-  console.log('Creating embossed text on 6 edges:', text);
+  console.log('Creating laser text on 6 edges:', text);
 
-  // Remove existing text planes
+  // Remove existing text planes and dispose materials
   hexagonTextMeshes.forEach(mesh => {
     if (mesh && mesh.parent) {
       mesh.parent.remove(mesh);
       mesh.geometry.dispose();
-      if (mesh.material.map) mesh.material.map.dispose();
-      if (mesh.material.bumpMap) mesh.material.bumpMap.dispose();
-      if (mesh.material.normalMap) mesh.material.normalMap.dispose();
-      if (mesh.material.alphaMap) mesh.material.alphaMap.dispose();
+      // Dispose shader material uniforms
+      if (mesh.material.uniforms) {
+        if (mesh.material.uniforms.map?.value) mesh.material.uniforms.map.value.dispose();
+        if (mesh.material.uniforms.alphaMap?.value) mesh.material.uniforms.alphaMap.value.dispose();
+      }
       mesh.material.dispose();
     }
   });
   hexagonTextMeshes = [];
-
-  // Create texture maps
-  const diffuseMap = createDiffuseMap(text);
-  const bumpMap = createBumpMap(text);
-  const normalMap = createNormalMap(text);
-  const alphaMap = createAlphaMap(text);
+  currentTextMaterials = [];
 
   // Hexagon edge dimensions - positioned on the ring
-  // Hexagon outer ~3.9, inner ~2.5, ring center ~3.2
-  const edgeWidth = 1.8;   // Width of text plane (along edge)
-  const edgeHeight = 0.35; // Height of text plane (thinner)
-  const edgeRadius = 3.2;  // Distance from center to edge middle (on the ring)
+  const edgeWidth = 1.8;
+  const edgeHeight = 0.35;
+  const edgeRadius = 3.2;
 
   // Create geometry for text planes
   const planeGeo = new THREE.PlaneGeometry(edgeWidth, edgeHeight, 32, 8);
@@ -281,27 +360,17 @@ function createHexagonText(text) {
     // Angle for hexagon edge centers (30°, 90°, 150°, 210°, 270°, 330°)
     const angle = (Math.PI / 6) + (i * Math.PI / 3);
 
-    // Create material with emboss textures and alpha for transparency
-    const material = new THREE.MeshStandardMaterial({
-      map: diffuseMap.clone(),
-      bumpMap: bumpMap.clone(),
-      bumpScale: 0.05,
-      normalMap: normalMap.clone(),
-      normalScale: new THREE.Vector2(1.2, 1.2),
-      alphaMap: alphaMap.clone(),
-      transparent: true,
-      alphaTest: 0.1,
-      metalness: 0.6,
-      roughness: 0.4,
-      side: THREE.DoubleSide
-    });
+    // Create laser draw shader material
+    const material = createLaserDrawMaterial(text);
+    material.uniforms.drawProgress.value = initialProgress;
+    currentTextMaterials.push(material);
 
     const textPlane = new THREE.Mesh(planeGeo, material);
 
     // Position on the edge - on top of the hexagon ring
     const x = Math.cos(angle) * edgeRadius;
     const y = Math.sin(angle) * edgeRadius;
-    textPlane.position.set(x, y, 0.12); // On top of hexagon surface
+    textPlane.position.set(x, y, 0.12);
 
     // Rotate to face outward and align with edge
     textPlane.rotation.z = angle - Math.PI / 2;
@@ -311,60 +380,90 @@ function createHexagonText(text) {
   }
 
   hexagonTextMesh = hexagonTextMeshes[0];
-  console.log('Created 6 embossed text planes');
+  console.log('Created 6 laser text planes');
 }
 
-// Function to animate text change (all 6 edges at once)
-function changeHexagonText(newIndex) {
+// Track if text animation is in progress to prevent conflicts
+let isTextChanging = false;
+
+// Function to change text WITHOUT animation (scroll trigger will handle animation)
+function changeHexagonText(newIndex, startProgress = 0.0) {
   if (newIndex === currentTextIndex) return;
   if (!hexagonGroup) return;
+  if (isTextChanging) return; // Prevent overlapping changes
 
   const newText = serviceTexts[newIndex];
-  currentTextIndex = newIndex;
 
-  // If no text exists yet, create it directly
-  if (hexagonTextMeshes.length === 0) {
-    createHexagonText(newText);
-    // Animate in all 6 text meshes
-    hexagonTextMeshes.forEach((mesh, i) => {
-      mesh.scale.set(0, 0, 0);
-      gsap.to(mesh.scale, {
-        x: 1, y: 1, z: 1,
-        duration: 0.4,
-        delay: i * 0.05,
-        ease: "back.out(1.7)"
-      });
-    });
+  // If no valid text (empty or index 0), clear text instead
+  if (!newText || newText === '') {
+    clearHexagonText();
     return;
   }
 
-  // Animate out all existing texts
-  const animateOutPromises = hexagonTextMeshes.map((mesh, i) => {
-    return new Promise(resolve => {
-      gsap.to(mesh.scale, {
-        x: 0, y: 0, z: 0,
-        duration: 0.25,
-        delay: i * 0.02,
-        ease: "power2.in",
-        onComplete: resolve
-      });
-    });
-  });
+  isTextChanging = true;
+  const oldIndex = currentTextIndex;
+  currentTextIndex = newIndex;
 
-  // When all texts are hidden, create new ones
-  Promise.all(animateOutPromises).then(() => {
-    createHexagonText(newText);
-    // Animate in new texts
-    hexagonTextMeshes.forEach((mesh, i) => {
-      mesh.scale.set(0, 0, 0);
-      gsap.to(mesh.scale, {
-        x: 1, y: 1, z: 1,
-        duration: 0.4,
-        delay: i * 0.05,
-        ease: "back.out(1.7)"
-      });
-    });
+  // If no existing text, just create new one
+  if (hexagonTextMeshes.length === 0) {
+    createHexagonText(newText, startProgress);
+    isTextChanging = false;
+    return;
+  }
+
+  // If same section (shouldn't happen but safety check)
+  if (oldIndex === newIndex) {
+    isTextChanging = false;
+    return;
+  }
+
+  // Remove old text immediately and create new one
+  // The scroll trigger will handle the draw animation
+  hexagonTextMeshes.forEach(mesh => {
+    if (mesh && mesh.parent) {
+      mesh.parent.remove(mesh);
+      mesh.geometry.dispose();
+      if (mesh.material.uniforms) {
+        if (mesh.material.uniforms.map?.value) mesh.material.uniforms.map.value.dispose();
+        if (mesh.material.uniforms.alphaMap?.value) mesh.material.uniforms.alphaMap.value.dispose();
+      }
+      mesh.material.dispose();
+    }
   });
+  hexagonTextMeshes = [];
+  currentTextMaterials = [];
+
+  // Create new text (starts at given progress, scroll will animate it)
+  createHexagonText(newText, startProgress);
+  isTextChanging = false;
+}
+
+// Helper function to set text draw progress (for scroll-based animation)
+function setTextDrawProgress(progress) {
+  currentTextMaterials.forEach(mat => {
+    if (mat?.uniforms?.drawProgress) {
+      mat.uniforms.drawProgress.value = progress;
+    }
+  });
+}
+
+// Clear all hexagon text (for hero section - no text)
+function clearHexagonText() {
+  // Immediately remove all meshes
+  hexagonTextMeshes.forEach(mesh => {
+    if (mesh && mesh.parent) {
+      mesh.parent.remove(mesh);
+      mesh.geometry.dispose();
+      if (mesh.material.uniforms) {
+        if (mesh.material.uniforms.map?.value) mesh.material.uniforms.map.value.dispose();
+        if (mesh.material.uniforms.alphaMap?.value) mesh.material.uniforms.alphaMap.value.dispose();
+      }
+      mesh.material.dispose();
+    }
+  });
+  hexagonTextMeshes = [];
+  currentTextMaterials = [];
+  currentTextIndex = -1; // Reset index so next section creates text
 }
 
 
@@ -449,11 +548,8 @@ loader.load('/assets/SVG/hexagon-logo.svg', (data) => {
   hexagonGroup.position.set(0, 0, 0);
   scene.add(hexagonGroup);
 
-  // Create initial embossed text
-  createHexagonText('HEXAGON');
-
-  // Initialize Saber Slash Effect
-  saberEffect = new SaberSlashEffect(scene, camera, renderer);
+  // Text will be created on scroll, not at start
+  // createHexagonText('HEXAGON');
 
   playNeonAnimation();
   setupScrollAnimations();
@@ -530,6 +626,7 @@ function playNeonAnimation() {
 let shuffleAnimationTimeline = null;
 let currentCharElements = [];
 let isTextAnimating = false;
+let textAnimationComplete = false; // Track if animation finished properly
 
 function cleanupShuffleAnimation() {
   // Kill existing timeline
@@ -550,6 +647,41 @@ function cleanupShuffleAnimation() {
   gsap.killTweensOf('.subtitle');
 }
 
+// Force text to final state (for when animation is interrupted)
+function forceTextComplete() {
+  const title = document.querySelector('.title');
+  if (!title) return;
+
+  const text = title.dataset.origText || 'HEXAGON';
+
+  // Simply set the text directly without animation
+  title.innerHTML = '';
+  title.style.cssText = 'opacity:1;display:block;text-align:center;';
+  title.textContent = text;
+
+  // Also ensure subtitle is visible
+  const subtitle = document.querySelector('.subtitle');
+  if (subtitle) {
+    gsap.set(subtitle, { opacity: 1, y: 0 });
+  }
+
+  isTextAnimating = false;
+  textAnimationComplete = true;
+  currentCharElements = [];
+}
+
+// Page Visibility API - fix animation when tab becomes active
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    // Tab became visible - check if animation was interrupted
+    if (isTextAnimating || (currentCharElements.length > 0 && !textAnimationComplete)) {
+      // Animation was in progress or left in bad state - force complete
+      cleanupShuffleAnimation();
+      forceTextComplete();
+    }
+  }
+});
+
 function revealText() {
   const title = document.querySelector('.title');
   if (!title) return;
@@ -559,6 +691,7 @@ function revealText() {
     cleanupShuffleAnimation();
   }
   isTextAnimating = true;
+  textAnimationComplete = false; // Animation starting
 
   // Store original text
   if (!title.dataset.origText) {
@@ -627,6 +760,7 @@ function revealText() {
   shuffleAnimationTimeline = gsap.timeline({
     onComplete: () => {
       isTextAnimating = false;
+      textAnimationComplete = true; // Animation finished properly
     }
   });
 
@@ -657,6 +791,7 @@ function unrevealText() {
     cleanupShuffleAnimation();
   }
   isTextAnimating = true;
+  textAnimationComplete = false; // Animation starting
 
   const text = title.dataset.origText || 'HEXAGON';
 
@@ -723,6 +858,7 @@ function unrevealText() {
   shuffleAnimationTimeline = gsap.timeline({
     onComplete: () => {
       isTextAnimating = false;
+      textAnimationComplete = true; // Animation finished properly
       // Hide title after animation
       title.style.opacity = '0';
     }
@@ -813,24 +949,151 @@ function setupScrollAnimations() {
     }
   });
 
-  // 3D Text change triggers for each service section
-  // Hero -> HEXAGON (index 0)
-  ScrollTrigger.create({
-    trigger: ".hero",
-    start: "top center",
-    end: "bottom center",
-    onEnter: () => changeHexagonText(0),
-    onEnterBack: () => changeHexagonText(0)
+  // 3D Text - NO text in hero, only in service sections
+  // Track which section's text is currently showing
+  let activeTextSection = -1;
+  let lastScrollDirection = 1; // 1 = down, -1 = up
+
+  // Track scroll direction
+  let lastScrollY = 0;
+  window.addEventListener('scroll', () => {
+    const currentScrollY = window.scrollY;
+    lastScrollDirection = currentScrollY > lastScrollY ? 1 : -1;
+    lastScrollY = currentScrollY;
   });
 
-  // Each service section changes the text
+  // Hero trigger - only clear text when fully back in hero
+  ScrollTrigger.create({
+    trigger: ".hero",
+    start: "bottom 90%", // When hero bottom is at 90% of viewport (we're back at top)
+    end: "bottom 50%",
+    onEnterBack: () => {
+      // Only clear if we're actually at the hero (not just passing through)
+      if (activeTextSection === 1) {
+        // First section's text - let it erase naturally, then clear
+        // Don't clear immediately - the section trigger will handle erase
+      }
+    }
+  });
+
+  // Track if a reverse transition is in progress
+  let reverseTransitionInProgress = false;
+
+  // Each service section: unified trigger for text + laser animation
   serviceSections.forEach((section, index) => {
+    const textIndex = index + 1; // serviceTexts index
+    const isFirstSection = index === 0;
+    const isLastSection = index === serviceSections.length - 1;
+
     ScrollTrigger.create({
       trigger: section,
-      start: "top center",
-      end: "bottom center",
-      onEnter: () => changeHexagonText(index + 1),
-      onEnterBack: () => changeHexagonText(index + 1)
+      start: "top 90%",    // Start when section top hits 90% of viewport
+      end: "top 10%",      // End when section top hits 10% of viewport
+      scrub: 0.5,          // Smooth scrub
+      onEnter: () => {
+        // Scrolling DOWN - entering section from above
+        if (activeTextSection !== textIndex && !reverseTransitionInProgress) {
+          // Check if there's existing text to erase first
+          if (currentTextMaterials.length > 0 && activeTextSection !== -1) {
+            // Smooth erase of old text before creating new
+            reverseTransitionInProgress = true;
+            const currentProgress = currentTextMaterials[0]?.uniforms?.drawProgress?.value ?? 1;
+
+            gsap.to({ progress: currentProgress }, {
+              progress: 0,
+              duration: 0.2,
+              ease: "power2.in",
+              onUpdate: function() {
+                setTextDrawProgress(this.targets()[0].progress);
+              },
+              onComplete: () => {
+                // Now create new text starting invisible
+                changeHexagonText(textIndex, 0.0);
+                activeTextSection = textIndex;
+                reverseTransitionInProgress = false;
+              }
+            });
+          } else {
+            // No existing text, just create new
+            changeHexagonText(textIndex, 0.0);
+            activeTextSection = textIndex;
+          }
+        }
+      },
+      onLeave: () => {
+        // Scrolling DOWN - leaving section going to next
+        // Keep text fully drawn, next section will handle transition
+        setTextDrawProgress(1);
+      },
+      onEnterBack: () => {
+        // Scrolling UP - entering section from below
+        if (activeTextSection !== textIndex && !reverseTransitionInProgress) {
+          if (activeTextSection > textIndex && currentTextMaterials.length > 0) {
+            // Coming from a LATER section - smooth erase transition first
+            reverseTransitionInProgress = true;
+            const currentProgress = currentTextMaterials[0]?.uniforms?.drawProgress?.value ?? 1;
+
+            // Quick erase of current text with laser effect
+            gsap.to({ progress: currentProgress }, {
+              progress: 0,
+              duration: 0.25,
+              ease: "power2.in",
+              onUpdate: function() {
+                setTextDrawProgress(this.targets()[0].progress);
+              },
+              onComplete: () => {
+                // Now create new section's text at full visibility
+                changeHexagonText(textIndex, 1.0);
+                activeTextSection = textIndex;
+                reverseTransitionInProgress = false;
+              }
+            });
+          } else {
+            // Normal case - just create text
+            changeHexagonText(textIndex, 1.0);
+            activeTextSection = textIndex;
+          }
+        }
+      },
+      onLeaveBack: () => {
+        // Scrolling UP - leaving section going to previous
+        // Text should be fully erased by now via scrub
+        if (!reverseTransitionInProgress) {
+          setTextDrawProgress(0);
+        }
+
+        // If leaving first section going to hero, clear text after erase
+        if (isFirstSection) {
+          setTimeout(() => {
+            if (activeTextSection === 1 && lastScrollDirection === -1 && !reverseTransitionInProgress) {
+              // Smooth erase before clearing
+              const currentProgress = currentTextMaterials[0]?.uniforms?.drawProgress?.value ?? 0;
+              if (currentProgress > 0.05) {
+                gsap.to({ progress: currentProgress }, {
+                  progress: 0,
+                  duration: 0.2,
+                  onUpdate: function() {
+                    setTextDrawProgress(this.targets()[0].progress);
+                  },
+                  onComplete: () => {
+                    clearHexagonText();
+                    activeTextSection = -1;
+                  }
+                });
+              } else {
+                clearHexagonText();
+                activeTextSection = -1;
+              }
+            }
+          }, 100);
+        }
+      },
+      onUpdate: (self) => {
+        // Only update progress if this section's text is active and no transition running
+        if (activeTextSection === textIndex && currentTextMaterials.length > 0 && !reverseTransitionInProgress) {
+          setTextDrawProgress(self.progress);
+        }
+      }
     });
   });
 
@@ -894,7 +1157,10 @@ function setupScrollAnimations() {
   }, 0.9);
 
   // 3. Individual card animations synced with hexagon rotation
+  // Skip About Us (index 0) - it has custom flip animation in initAboutModulesFlip
   serviceSections.forEach((section, index) => {
+    if (index === 0) return; // Skip About Us section
+
     const card = section.querySelector('.content-box');
 
     // Create a timeline for each card's full lifecycle
@@ -964,10 +1230,12 @@ function animate() {
   // Subtle background glow pulse
   bgGlowPoint.intensity = 20 + Math.sin(elapsedTime * 0.5) * 3;
 
-  // Update Saber Slash Effect
-  if (saberEffect && hexagonGroup) {
-    saberEffect.update(deltaTime, hexagonGroup);
-  }
+  // Update laser shader time uniform for flicker/spark effects
+  currentTextMaterials.forEach(mat => {
+    if (mat?.uniforms?.time) {
+      mat.uniforms.time.value = elapsedTime;
+    }
+  });
 
   composer.render();
 }
@@ -980,3 +1248,95 @@ window.addEventListener('resize', () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
   composer.setSize(window.innerWidth, window.innerHeight);
 });
+
+// --- 3D FLIP CARD SCROLL SYSTEM ---
+// CSS-based 3D flip cards with scroll-triggered page changes
+
+function setupFlipCards() {
+  const flipSections = document.querySelectorAll('.flip-section');
+  // Blur overlay is at body level (no transforms) for backdrop-filter to work
+  const blurOverlay = document.getElementById('flip-blur-overlay');
+
+  flipSections.forEach(section => {
+    const container = section.querySelector('.flip-card-container');
+    const pages = section.querySelectorAll('.flip-page');
+    const dots = section.querySelectorAll('.progress-dot');
+    const totalPages = pages.length;
+
+    if (totalPages === 0 || !container) return;
+
+    // Set first page as active
+    if (pages[0]) pages[0].classList.add('active');
+    if (dots[0]) dots[0].classList.add('active');
+
+    // ScrollTrigger for flip animations
+    ScrollTrigger.create({
+      trigger: section,
+      start: "top 80%",
+      end: "bottom bottom",
+      scrub: 1,
+      onEnter: () => {
+        container.classList.add('visible');
+        if (blurOverlay) blurOverlay.classList.add('visible');
+      },
+      onLeave: () => {
+        container.classList.remove('visible');
+        if (blurOverlay) blurOverlay.classList.remove('visible');
+      },
+      onLeaveBack: () => {
+        container.classList.remove('visible');
+        if (blurOverlay) blurOverlay.classList.remove('visible');
+      },
+      onEnterBack: () => {
+        container.classList.add('visible');
+        if (blurOverlay) blurOverlay.classList.add('visible');
+      },
+      onUpdate: (self) => {
+        const progress = self.progress;
+        const pageIndex = Math.min(
+          totalPages - 1,
+          Math.floor(progress * totalPages)
+        );
+
+        // Update pages
+        pages.forEach((page, i) => {
+          page.classList.remove('active', 'prev', 'next');
+
+          if (i === pageIndex) {
+            page.classList.add('active');
+          } else if (i < pageIndex) {
+            page.classList.add('prev');
+          } else {
+            page.classList.add('next');
+          }
+        });
+
+        // Update dots
+        dots.forEach((dot, i) => {
+          dot.classList.toggle('active', i === pageIndex);
+        });
+      }
+    });
+
+    // Click on dots to navigate
+    dots.forEach((dot, i) => {
+      dot.addEventListener('click', () => {
+        const targetProgress = i / totalPages;
+        const scrollTarget = section.offsetTop + (section.offsetHeight * targetProgress);
+
+        gsap.to(window, {
+          scrollTo: { y: scrollTarget, autoKill: false },
+          duration: 0.8,
+          ease: "power2.inOut"
+        });
+      });
+    });
+  });
+}
+
+// Initialize flip cards when DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', setupFlipCards);
+} else {
+  setupFlipCards();
+}

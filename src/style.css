@@ -76,11 +76,11 @@ section {
 
 .service-section {
   width: 55%;
-  perspective: 1000px;
 }
 
-.service-section .content-box {
-  transform-style: preserve-3d;
+/* About Us Section */
+.service-section[data-index="1"] {
+  width: 55%;
 }
 
 .content-box {
@@ -95,7 +95,10 @@ section {
 /* Premium Hexagon Cards */
 .hexagon-card {
   position: relative;
-  background: linear-gradient(135deg, rgba(255, 129, 6, 0.05) 0%, rgba(0, 0, 0, 0.3) 100%);
+  z-index: 2;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  background: rgba(20, 20, 30, 0.7);
   border: 1px solid rgba(255, 129, 6, 0.2);
   box-shadow:
     0 25px 50px rgba(0, 0, 0, 0.5),
@@ -194,6 +197,8 @@ section {
 
 .category-tag {
   display: inline-block;
+  width: fit-content;
+  align-self: flex-start;
   font-family: 'Space Grotesk', sans-serif;
   text-transform: uppercase;
   font-size: 0.75rem;
@@ -391,155 +396,695 @@ p {
   }
 }
 
-/* ============================================
-   SABER SLASH EFFECT - Lightsaber Kesme Efekti
-   ============================================ */
+/* ========================================
+   3D FLIP CARD SYSTEM
+   Multi-page flip cards with scroll-triggered 3D rotation
+   ======================================== */
 
-/* Aktif kesişim durumu */
-.hexagon-card.saber-active {
-  --slash-edge: left;
-  --slash-position: 50%;
-  --slash-angle: 180deg;
+.flip-section {
+  min-height: 500vh;
+  position: relative;
+  width: 100% !important;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
 }
 
-/* Dinamik kenar glow pseudo-element */
-.hexagon-card.saber-active .saber-glow {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
+/* Blur overlay - disabled since backdrop-filter doesn't work with WebGL */
+.flip-blur-overlay {
+  display: none;
+}
+
+.flip-card-container {
+  position: sticky;
+  top: calc(50% - 320px);
+  width: 100%;
+  max-width: 700px;
   z-index: 100;
+  /* Hidden initially until scroll activates */
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.5s ease, visibility 0.5s ease;
+}
+
+.flip-card-container.visible {
   opacity: 1;
-  transition: opacity 0.1s ease-out;
+  visibility: visible;
 }
 
-/* Kenar bazlı açı ayarları */
-.hexagon-card.saber-active[style*="--slash-edge: left"],
-.hexagon-card.saber-active[style*="--slash-edge: right"] {
-  --slash-angle: 180deg;
+.flip-card {
+  width: 100%;
+  height: 640px;
+  position: relative;
 }
 
-.hexagon-card.saber-active[style*="--slash-edge: top"],
-.hexagon-card.saber-active[style*="--slash-edge: bottom"] {
-  --slash-angle: 90deg;
-}
-
-/* Glow line efekti */
-.hexagon-card.saber-active::after {
+/* Permanent blur layer - always visible during transitions */
+.flip-card::before {
   content: '';
   position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background:
-    radial-gradient(circle at 30% 30%, rgba(255, 129, 6, 0.15) 0%, transparent 50%),
-    linear-gradient(
-      var(--slash-angle),
-      transparent,
-      transparent calc(var(--slash-position) - 30px),
-      rgba(255, 129, 6, 0.1) calc(var(--slash-position) - 15px),
-      rgba(255, 170, 0, 0.4) calc(var(--slash-position) - 5px),
-      rgba(255, 255, 255, 0.8) var(--slash-position),
-      rgba(255, 170, 0, 0.4) calc(var(--slash-position) + 5px),
-      rgba(255, 129, 6, 0.1) calc(var(--slash-position) + 15px),
-      transparent calc(var(--slash-position) + 30px),
-      transparent
-    );
+  inset: 0;
+  z-index: 1;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  background: rgba(20, 20, 30, 0.7);
+  border-radius: 24px;
+  border: 1px solid rgba(255, 129, 6, 0.2);
+  box-shadow:
+    0 25px 50px rgba(0, 0, 0, 0.5),
+    0 0 100px var(--card-glow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
   pointer-events: none;
-  animation: saber-flicker 0.08s ease-in-out infinite;
-  z-index: 50;
 }
 
-/* Aktif durumda gelişmiş box-shadow */
-.hexagon-card.saber-active {
-  box-shadow:
-    0 25px 50px rgba(0, 0, 0, 0.5),
-    0 0 100px var(--card-glow),
-    0 0 40px rgba(255, 129, 6, 0.4),
-    0 0 80px rgba(255, 170, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 129, 6, 0.5);
+.flip-page {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
 }
 
-/* Sol kenar aktif */
-.hexagon-card.saber-active[style*="--slash-edge: left"] {
-  border-left-color: rgba(255, 170, 0, 0.8);
-  box-shadow:
-    0 25px 50px rgba(0, 0, 0, 0.5),
-    0 0 100px var(--card-glow),
-    -20px 0 40px rgba(255, 129, 6, 0.5),
-    -30px 0 60px rgba(255, 170, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+.flip-page.active {
+  opacity: 1;
+  pointer-events: auto;
 }
 
-/* Sağ kenar aktif */
-.hexagon-card.saber-active[style*="--slash-edge: right"] {
-  border-right-color: rgba(255, 170, 0, 0.8);
-  box-shadow:
-    0 25px 50px rgba(0, 0, 0, 0.5),
-    0 0 100px var(--card-glow),
-    20px 0 40px rgba(255, 129, 6, 0.5),
-    30px 0 60px rgba(255, 170, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+.flip-page.prev,
+.flip-page.next {
+  opacity: 0;
 }
 
-/* Üst kenar aktif */
-.hexagon-card.saber-active[style*="--slash-edge: top"] {
-  border-top-color: rgba(255, 170, 0, 0.8);
-  box-shadow:
-    0 25px 50px rgba(0, 0, 0, 0.5),
-    0 0 100px var(--card-glow),
-    0 -20px 40px rgba(255, 129, 6, 0.5),
-    0 -30px 60px rgba(255, 170, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+/* Flip page hexagon cards - transparent, blur is in .flip-card::before */
+.flip-page .hexagon-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  /* Override - no background/blur here, it's in parent ::before */
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: none;
+  box-shadow: none;
 }
 
-/* Alt kenar aktif */
-.hexagon-card.saber-active[style*="--slash-edge: bottom"] {
-  border-bottom-color: rgba(255, 170, 0, 0.8);
-  box-shadow:
-    0 25px 50px rgba(0, 0, 0, 0.5),
-    0 0 100px var(--card-glow),
-    0 20px 40px rgba(255, 129, 6, 0.5),
-    0 30px 60px rgba(255, 170, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+.flip-page .hexagon-card h2,
+.flip-page .hexagon-card .section-subtitle,
+.flip-page .hexagon-card .feature-grid,
+.flip-page .hexagon-card .vision-mission,
+.flip-page .hexagon-card .process-list,
+.flip-page .hexagon-card .team-grid-flip,
+.flip-page .hexagon-card .culture-list {
+  width: 100%;
 }
 
-/* Flicker animasyonu */
-@keyframes saber-flicker {
-  0%, 100% {
-    opacity: 1;
-    filter: brightness(1);
+/* Card side edge - no transform to preserve backdrop-filter */
+.flip-page .hexagon-card::before {
+  display: none;
+}
+
+/* Progress dots - inside the card at bottom */
+.flip-progress {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  z-index: 10;
+}
+
+.progress-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(255, 129, 6, 0.3);
+  cursor: pointer;
+  transition: all 0.4s ease;
+  border: 1px solid rgba(255, 129, 6, 0.2);
+}
+
+.progress-dot:hover {
+  background: rgba(255, 129, 6, 0.5);
+  transform: scale(1.2);
+}
+
+.progress-dot.active {
+  width: 32px;
+  border-radius: 5px;
+  background: var(--primary);
+  box-shadow: 0 0 20px rgba(255, 129, 6, 0.6);
+}
+
+/* Vision & Mission content */
+.vision-mission {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-top: 1rem;
+}
+
+.vm-item {
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.3s ease;
+}
+
+.vm-item:hover {
+  background: rgba(255, 129, 6, 0.05);
+  border-color: rgba(255, 129, 6, 0.2);
+}
+
+.vm-label {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--primary);
+  display: block;
+  margin-bottom: 10px;
+}
+
+.vm-item p {
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Process list */
+.process-list {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0 0 0;
+}
+
+.process-list li {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.3s ease;
+}
+
+.process-list li:hover {
+  padding-left: 10px;
+  border-color: rgba(255, 129, 6, 0.2);
+}
+
+.process-list li:last-child {
+  border-bottom: none;
+}
+
+.process-num {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.7rem;
+  color: var(--primary);
+  background: rgba(255, 129, 6, 0.1);
+  padding: 6px 10px;
+  border-radius: 6px;
+  min-width: 28px;
+  text-align: center;
+}
+
+.process-list strong {
+  color: white;
+  font-weight: 600;
+}
+
+/* Team grid for flip cards */
+.team-grid-flip {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-top: 1rem;
+}
+
+.team-member-flip {
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.team-member-flip:hover {
+  background: rgba(255, 129, 6, 0.05);
+  border-color: rgba(255, 129, 6, 0.2);
+  transform: translateY(-2px);
+}
+
+.team-member-flip strong {
+  display: block;
+  font-size: 0.9rem;
+  color: white;
+  margin-bottom: 4px;
+}
+
+.team-member-flip span {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* Culture list */
+.culture-list {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0 0 0;
+}
+
+.culture-list li {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.8);
+  transition: all 0.3s ease;
+}
+
+.culture-list li:hover {
+  padding-left: 10px;
+  color: white;
+}
+
+.culture-list li:last-child {
+  border-bottom: none;
+}
+
+.culture-icon-flip {
+  color: var(--primary);
+  font-size: 1rem;
+}
+
+.module-number {
+  position: absolute;
+  top: 1.5rem;
+  right: 2rem;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 3rem;
+  font-weight: 700;
+  color: rgba(255, 129, 6, 0.12);
+  line-height: 1;
+}
+
+.module-card h3 {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 2rem;
+  margin: 0;
+  background: linear-gradient(90deg, #fff, #aaa);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  position: relative;
+  z-index: 1;
+}
+
+.module-subtitle {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.1rem;
+  color: var(--primary);
+  margin: 0.5rem 0 1.5rem 0;
+  opacity: 0.9;
+}
+
+.module-content {
+  position: relative;
+  z-index: 1;
+  border-top: 1px solid rgba(255, 129, 6, 0.15);
+  padding-top: 1.5rem;
+  margin-top: 0.5rem;
+}
+
+/* Module List */
+.module-list {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.module-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.5;
+}
+
+.list-marker {
+  color: var(--primary);
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+  flex-shrink: 0;
+}
+
+/* Team Member in Modules */
+.team-member {
+  text-align: center;
+  padding: 1rem;
+  background: rgba(255, 129, 6, 0.05);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 129, 6, 0.1);
+  transition: all 0.3s ease;
+}
+
+.team-member:hover {
+  border-color: rgba(255, 129, 6, 0.3);
+  transform: translateY(-3px);
+  box-shadow: 0 10px 30px rgba(255, 129, 6, 0.1);
+}
+
+.team-member .member-avatar {
+  width: 70px;
+  height: 70px;
+  background: linear-gradient(135deg, rgba(255, 129, 6, 0.25) 0%, rgba(255, 129, 6, 0.08) 100%);
+  border-radius: 50%;
+  margin: 0 auto 1rem auto;
+  border: 2px solid rgba(255, 129, 6, 0.4);
+}
+
+.team-member h4 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: white;
+  margin: 0 0 0.3rem 0;
+}
+
+.team-member p {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0;
+  max-width: none;
+}
+
+/* Content Styles */
+.highlight-text {
+  font-size: 1.05rem;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.6;
+  margin: 0 0 1rem 0;
+  max-width: none;
+}
+
+.content-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.content-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.5;
+}
+
+.list-icon {
+  color: var(--primary);
+  font-size: 0.7rem;
+  margin-top: 0.3rem;
+}
+
+/* Vision Block */
+.vision-block {
+  margin-bottom: 1rem;
+}
+
+.vision-block:last-child {
+  margin-bottom: 0;
+}
+
+.block-label {
+  display: inline-block;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--primary);
+  background: rgba(255, 129, 6, 0.1);
+  padding: 4px 10px;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+}
+
+.vision-block p {
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0;
+  line-height: 1.6;
+  max-width: none;
+}
+
+/* Process Steps */
+.process-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.process-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 0.75rem;
+  background: rgba(255, 129, 6, 0.03);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 129, 6, 0.08);
+  transition: all 0.3s ease;
+}
+
+.process-step:hover {
+  border-color: rgba(255, 129, 6, 0.2);
+  background: rgba(255, 129, 6, 0.05);
+}
+
+.step-number {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--primary);
+  background: rgba(255, 129, 6, 0.1);
+  padding: 6px 10px;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.step-content h4 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: white;
+  margin: 0 0 0.25rem 0;
+}
+
+.step-content p {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0;
+  line-height: 1.4;
+  max-width: none;
+}
+
+/* Team Grid - Placeholder */
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.team-member-placeholder {
+  text-align: center;
+  padding: 1rem;
+  background: rgba(255, 129, 6, 0.03);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 129, 6, 0.08);
+  transition: all 0.3s ease;
+}
+
+.team-member-placeholder:hover {
+  border-color: rgba(255, 129, 6, 0.2);
+  transform: translateY(-2px);
+}
+
+.member-avatar {
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, rgba(255, 129, 6, 0.2) 0%, rgba(255, 129, 6, 0.05) 100%);
+  border-radius: 50%;
+  margin: 0 auto 0.75rem auto;
+  border: 2px solid rgba(255, 129, 6, 0.3);
+}
+
+.team-member-placeholder h4 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: white;
+  margin: 0 0 0.25rem 0;
+}
+
+.team-member-placeholder p {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0;
+  max-width: none;
+}
+
+/* Team Departments */
+.team-departments {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+}
+
+.department {
+  padding: 0.75rem;
+  background: rgba(255, 129, 6, 0.03);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 129, 6, 0.08);
+  transition: all 0.3s ease;
+}
+
+.department:hover {
+  border-color: rgba(255, 129, 6, 0.2);
+}
+
+.department h4 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--primary);
+  margin: 0 0 0.25rem 0;
+}
+
+.department p {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0;
+  line-height: 1.4;
+  max-width: none;
+}
+
+/* Culture Highlights */
+.culture-highlights {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.culture-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 0.75rem;
+  background: rgba(255, 129, 6, 0.03);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 129, 6, 0.08);
+  transition: all 0.3s ease;
+}
+
+.culture-item:hover {
+  border-color: rgba(255, 129, 6, 0.2);
+  background: rgba(255, 129, 6, 0.05);
+}
+
+.culture-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.culture-item h4 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: white;
+  margin: 0 0 0.25rem 0;
+}
+
+.culture-item p {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0;
+  line-height: 1.4;
+  max-width: none;
+}
+
+/* Team Card Special Marker */
+.team-card .expand-card-header::after {
+  content: 'Coming Soon';
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--primary);
+  background: rgba(255, 129, 6, 0.1);
+  padding: 3px 8px;
+  border-radius: 4px;
+  margin-right: 0.5rem;
+}
+
+/* Modal Overlay for Expanded State */
+.expand-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+  z-index: 1000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.expand-modal-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .expandable-cards {
+    max-height: 350px;
   }
-  25% {
-    opacity: 0.95;
-    filter: brightness(1.1);
+
+  .expand-card-header {
+    padding: 0.875rem 1rem;
   }
-  50% {
-    opacity: 0.9;
-    filter: brightness(0.95);
+
+  .expand-card-icon {
+    width: 36px;
+    height: 36px;
   }
-  75% {
-    opacity: 0.98;
-    filter: brightness(1.05);
+
+  .expand-card-title h3 {
+    font-size: 0.9rem;
+  }
+
+  .team-grid,
+  .team-departments {
+    grid-template-columns: 1fr;
+  }
+
+  .process-step {
+    flex-direction: column;
+    gap: 0.5rem;
   }
 }
 
-/* Hafif titreşim animasyonu */
-@keyframes saber-shake {
-  0%, 100% { transform: translate(0, 0); }
-  25% { transform: translate(1px, 0); }
-  50% { transform: translate(-1px, 1px); }
-  75% { transform: translate(0, -1px); }
-}
-
-.hexagon-card.saber-active .content-box {
-  animation: saber-shake 0.05s ease-in-out infinite;
-}
-
-/* Geçiş efektleri */
-.hexagon-card {
-  transition:
-    box-shadow 0.15s ease-out,
-    border-color 0.15s ease-out;
-}
