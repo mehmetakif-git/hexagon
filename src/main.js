@@ -1729,32 +1729,37 @@ function initContactModal() {
     }, 2000);
   });
 
-  // Location hover effects (rotate globe to location)
+  // Location click - rotate globe to exact coordinates
   const locations = modal.querySelectorAll('.globe-locations .location');
+
+  // City coordinates (lat, lng)
+  const cityCoords = {
+    doha: { lat: 25.3, lng: 51.5 },
+    london: { lat: 51.5, lng: -0.1 },
+    istanbul: { lat: 41.0, lng: 29.0 },
+    dubai: { lat: 25.2, lng: 55.3 }
+  };
+
   locations.forEach(loc => {
     loc.addEventListener('click', () => {
+      console.log('🔘 Location clicked:', loc.dataset.city);
+
       // Remove active from all
       locations.forEach(l => l.classList.remove('active'));
       // Add active to clicked
       loc.classList.add('active');
 
-      // Rotate globe to location (if we have access)
-      if (hexagonGlobe && hexagonGlobe.globe) {
-        const city = loc.dataset.city;
-        const rotations = {
-          doha: -Math.PI / 2.5,
-          london: Math.PI / 6,
-          istanbul: -Math.PI / 4,
-          dubai: -Math.PI / 2
-        };
+      // Rotate globe to exact location using the Globe class method
+      const city = loc.dataset.city;
+      const coords = cityCoords[city];
 
-        if (rotations[city] !== undefined) {
-          gsap.to(hexagonGlobe.globe.rotation, {
-            y: rotations[city],
-            duration: 1,
-            ease: 'power2.out'
-          });
-        }
+      console.log('📍 City coords:', coords);
+      console.log('🌐 hexagonGlobe exists:', !!hexagonGlobe);
+      console.log('🌐 hexagonGlobe.rotateToCity exists:', !!(hexagonGlobe && hexagonGlobe.rotateToCity));
+
+      if (hexagonGlobe && coords) {
+        // Use the rotateToCity method which handles auto-rotate pause
+        hexagonGlobe.rotateToCity(coords.lat, coords.lng);
       }
     });
   });

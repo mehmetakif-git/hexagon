@@ -1514,20 +1514,63 @@ p {
   max-width: 1400px;
   height: 90vh;
   max-height: 800px;
-  background: linear-gradient(135deg, rgba(15, 10, 20, 0.98) 0%, rgba(5, 5, 5, 0.98) 100%);
-  border: 1px solid rgba(255, 129, 6, 0.2);
-  border-radius: 24px;
+  /* Hexagon Card Style */
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  background: rgba(20, 20, 30, 0.85);
+  border: 1px solid rgba(255, 129, 6, 0.3);
+  border-radius: 16px;
   overflow: hidden;
   box-shadow:
-    0 0 60px rgba(255, 129, 6, 0.15),
-    0 30px 60px rgba(0, 0, 0, 0.5),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    0 25px 50px rgba(0, 0, 0, 0.5),
+    0 0 100px rgba(255, 68, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
   transform: scale(0.9) translateY(30px);
   transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* Hexagon card top gradient line */
+.contact-modal-content::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--primary), transparent);
+  opacity: 0.6;
+  z-index: 5;
+}
+
+/* Hexagon card radial glow */
+.contact-modal-content::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle at 30% 30%, rgba(255, 129, 6, 0.08) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
 .contact-modal.active .contact-modal-content {
   transform: scale(1) translateY(0);
+}
+
+/* Card Edge Indicator for Modal */
+.contact-modal-indicator {
+  position: absolute;
+  top: 1.5rem;
+  left: 2rem;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: rgba(255, 129, 6, 0.12);
+  line-height: 1;
+  z-index: 2;
+  pointer-events: none;
 }
 
 /* Close Button */
@@ -1537,9 +1580,9 @@ p {
   right: 20px;
   width: 44px;
   height: 44px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 50%;
+  background: rgba(255, 129, 6, 0.08);
+  border: 1px solid rgba(255, 129, 6, 0.25);
+  border-radius: 8px;
   cursor: pointer;
   z-index: 10;
   transition: all 0.3s ease;
@@ -1548,7 +1591,8 @@ p {
 .contact-modal-close:hover {
   background: rgba(255, 129, 6, 0.2);
   border-color: var(--primary);
-  transform: rotate(90deg);
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(255, 129, 6, 0.3);
 }
 
 .contact-modal-close span {
@@ -1574,6 +1618,8 @@ p {
   display: grid;
   grid-template-columns: 1fr 1fr;
   height: 100%;
+  position: relative;
+  z-index: 1;
 }
 
 /* Left Side - Contact Form */
@@ -1583,7 +1629,8 @@ p {
   flex-direction: column;
   justify-content: center;
   overflow: hidden;
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(0, 0, 0, 0.2);
+  border-right: 1px solid rgba(255, 129, 6, 0.15);
 }
 
 .form-header {
@@ -1592,14 +1639,17 @@ p {
 
 .form-label {
   display: inline-block;
-  padding: 6px 14px;
-  border: 1px solid var(--primary);
+  padding: 6px 16px;
+  background: rgba(255, 129, 6, 0.1);
+  border: 1px solid rgba(255, 129, 6, 0.4);
   border-radius: 50px;
   font-size: 0.65rem;
+  font-weight: 500;
   letter-spacing: 2px;
   color: var(--primary);
   text-transform: uppercase;
   margin-bottom: 1rem;
+  box-shadow: 0 0 15px rgba(255, 129, 6, 0.1);
 }
 
 .form-title {
@@ -1641,9 +1691,9 @@ p {
 .form-group input,
 .form-group select,
 .form-group textarea {
-  padding: 12px 16px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 14px 18px;
+  background: rgba(255, 129, 6, 0.03);
+  border: 1px solid rgba(255, 129, 6, 0.15);
   border-radius: 8px;
   color: white;
   font-family: 'Outfit', sans-serif;
@@ -1655,9 +1705,9 @@ p {
 .form-group select:focus,
 .form-group textarea:focus {
   outline: none;
-  border-color: var(--primary);
-  background: rgba(255, 129, 6, 0.05);
-  box-shadow: 0 0 20px rgba(255, 129, 6, 0.1);
+  border-color: rgba(255, 129, 6, 0.5);
+  background: rgba(255, 129, 6, 0.08);
+  box-shadow: 0 0 25px rgba(255, 129, 6, 0.15);
 }
 
 .form-group input::placeholder,
@@ -1691,7 +1741,7 @@ p {
   gap: 10px;
   padding: 14px 28px;
   background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-  border: none;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   color: white;
   font-family: 'Outfit', sans-serif;
@@ -1700,11 +1750,29 @@ p {
   cursor: pointer;
   transition: all 0.3s ease;
   margin-top: 0.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.form-submit::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.form-submit:hover::before {
+  left: 100%;
 }
 
 .form-submit:hover {
   transform: translateY(-2px);
   box-shadow: 0 10px 30px rgba(255, 129, 6, 0.4);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 .form-submit svg {
@@ -1719,37 +1787,68 @@ p {
 .form-contact-info {
   display: flex;
   gap: 2rem;
-  margin-top: 1.2rem;
-  padding-top: 1.2rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 129, 6, 0.15);
 }
 
 .info-item {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   font-size: 0.85rem;
   color: rgba(255, 255, 255, 0.6);
+  transition: color 0.3s ease;
+}
+
+.info-item:hover {
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .info-icon {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 129, 6, 0.1);
-  border: 1px solid rgba(255, 129, 6, 0.3);
-  border-radius: 50%;
-  font-size: 0.7rem;
+  background: rgba(255, 129, 6, 0.08);
+  border: 1px solid rgba(255, 129, 6, 0.25);
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
   color: var(--primary);
+  transition: all 0.3s ease;
+}
+
+.info-item:hover .info-icon {
+  background: rgba(255, 129, 6, 0.15);
+  border-color: rgba(255, 129, 6, 0.5);
+  box-shadow: 0 0 15px rgba(255, 129, 6, 0.2);
 }
 
 /* Right Side - Globe */
 .contact-globe-side {
   position: relative;
-  background: radial-gradient(ellipse at center, rgba(255, 129, 6, 0.05) 0%, transparent 70%);
+  background:
+    radial-gradient(ellipse at center, rgba(255, 129, 6, 0.08) 0%, transparent 60%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.3) 100%);
   overflow: hidden;
+}
+
+/* Subtle grid pattern for globe side */
+.contact-globe-side::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image:
+    linear-gradient(rgba(255, 129, 6, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 129, 6, 0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
+  pointer-events: none;
+  opacity: 0.5;
 }
 
 .globe-wrapper {
@@ -1785,14 +1884,17 @@ p {
 
 .globe-label {
   display: inline-block;
-  padding: 4px 12px;
+  padding: 5px 14px;
+  background: rgba(255, 129, 6, 0.1);
   border: 1px solid rgba(255, 129, 6, 0.4);
   border-radius: 50px;
   font-size: 0.6rem;
+  font-weight: 500;
   letter-spacing: 2px;
   color: var(--primary);
   text-transform: uppercase;
   margin-bottom: 0.5rem;
+  box-shadow: 0 0 15px rgba(255, 129, 6, 0.1);
 }
 
 .globe-title {

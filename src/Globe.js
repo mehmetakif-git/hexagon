@@ -1,6 +1,7 @@
 // src/Globe.js
 import * as THREE from 'three';
 import ThreeGlobe from 'three-globe';
+import gsap from 'gsap';
 
 export class HexagonGlobe {
   constructor(container) {
@@ -11,16 +12,19 @@ export class HexagonGlobe {
     this.globe = null;
     this.rafId = null;
     this.isDestroyed = false;
+    this.pauseAutoRotate = false; // Flag to pause auto-rotation during city animation
 
-    // Hexagon Theme Colors
+    // Hexagon Theme Colors - Optimized for polygon display
     this.colors = {
-      globe: '#0a0815',
-      land: 'rgba(255, 129, 6, 0.3)',
-      arc: '#FF8106',
-      arcAlt: '#FFAA33',
-      point: '#FF8106',
+      globe: '#050a15',                      // Very dark blue
+      land: 'rgba(255, 129, 6, 0.4)',        // Semi-transparent orange for countries
+      landStroke: 'rgba(255, 129, 6, 0.8)', // Brighter border
+      arc: '#FFFFFF',                        // White - main office connections
+      arcAlt: '#FFD700',                     // Gold - global connections
+      point: '#FFFFFF',                      // White dots
+      pointHQ: '#FFD700',                    // Gold for HQ
       atmosphere: '#FF8106',
-      ring: 'rgba(255, 129, 6, 0.6)'
+      ring: 'rgba(255, 255, 255, 0.7)'       // White pulse rings
     };
 
     // Office Locations
@@ -118,15 +122,39 @@ export class HexagonGlobe {
   }
 
   async loadCountriesData() {
-    try {
-      const response = await fetch('https://raw.githubusercontent.com/vasturiano/three-globe/master/example/datasets/ne_110m_admin_0_countries.geojson');
-      const data = await response.json();
-      this.countriesData = data;
-      this.countriesLoaded = true;
-    } catch (error) {
-      console.warn('Could not load countries data:', error);
-      this.countriesLoaded = false;
+    // Direct GeoJSON URLs (not TopoJSON)
+    const urls = [
+      'https://d2ad6b4ur7yvpq.cloudfront.net/naturalearth-3.3.0/ne_110m_admin_0_countries.geojson',
+      'https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson'
+    ];
+
+    for (const url of urls) {
+      try {
+        console.log('🌍 Trying to load countries from:', url);
+        const response = await fetch(url);
+
+        if (!response.ok) {
+          console.warn(`❌ Failed to fetch from ${url}: ${response.status}`);
+          continue;
+        }
+
+        const data = await response.json();
+
+        // GeoJSON format
+        if (data.type === 'FeatureCollection' && data.features) {
+          this.countriesData = data;
+          console.log('✅ Countries loaded (GeoJSON):', data.features.length);
+          this.countriesLoaded = true;
+          return;
+        }
+
+      } catch (error) {
+        console.warn(`❌ Error loading from ${url}:`, error.message);
+      }
     }
+
+    console.warn('⚠️ Could not load countries from any source');
+    this.countriesLoaded = false;
   }
 
   setupLights() {
@@ -151,55 +179,74 @@ export class HexagonGlobe {
   }
 
   setupGlobe() {
+    console.log('🔧 Setting up globe...');
+    console.log('📊 Countries loaded:', this.countriesLoaded);
+    console.log('📊 Features count:', this.countriesData?.features?.length || 0);
+
     // Create globe
     this.globe = new ThreeGlobe()
       // Globe appearance
       .showGlobe(true)
       .showAtmosphere(true)
       .atmosphereColor(this.colors.atmosphere)
-      .atmosphereAltitude(0.2);
+      .atmosphereAltitude(0.12);
 
-    // Add hex polygons if data loaded
-    if (this.countriesLoaded && this.countriesData.features.length > 0) {
+    // Add polygons if data loaded (using polygonsData instead of hexPolygons for reliability)
+    if (this.countriesLoaded && this.countriesData?.features?.length > 0) {
+      console.log('🌍 Adding polygons for', this.countriesData.features.length, 'countries');
       this.globe
-        .hexPolygonsData(this.countriesData.features)
-        .hexPolygonResolution(3)
-        .hexPolygonMargin(0.7)
-        .hexPolygonColor(() => this.colors.land);
+        .polygonsData(this.countriesData.features)
+        .polygonCapColor(() => this.colors.land)
+        .polygonSideColor(() => 'rgba(255, 129, 6, 0.15)')
+        .polygonStrokeColor(() => this.colors.landStroke)
+        .polygonAltitude(0.008);
+    } else {
+      console.warn('⚠️ No countries data - adding wireframe fallback');
+      // Fallback wireframe sphere
+      const geometry = new THREE.SphereGeometry(100.5, 48, 24);
+      const material = new THREE.MeshBasicMaterial({
+        color: 0xFF8106,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.15
+      });
+      this.wireframeSphere = new THREE.Mesh(geometry, material);
+      this.scene.add(this.wireframeSphere);
     }
 
-    // Arcs
+    // Arcs - White/Gold animated connections
     this.globe
       .arcsData(this.arcs)
       .arcColor(d => d.color)
-      .arcAltitude(0.15)
-      .arcStroke(0.6)
-      .arcDashLength(0.9)
-      .arcDashGap(0.4)
-      .arcDashAnimateTime(2000)
-      .arcDashInitialGap(d => d.order * 0.5);
+      .arcAltitude(0.2)
+      .arcStroke(1.2)
+      .arcDashLength(0.6)
+      .arcDashGap(0.3)
+      .arcDashAnimateTime(1500)
+      .arcDashInitialGap(d => d.order * 0.4);
 
-    // Points (locations)
+    // Points (locations) - White/Gold dots
     this.globe
       .pointsData(this.locations)
-      .pointColor(d => d.isHQ ? '#FF8106' : '#FFAA33')
-      .pointAltitude(0.02)
-      .pointRadius(d => d.isHQ ? 1.0 : 0.6);
+      .pointColor(d => d.isHQ ? this.colors.pointHQ : this.colors.point)
+      .pointAltitude(0.025)
+      .pointRadius(d => d.isHQ ? 1.2 : 0.8);
 
-    // Rings (pulse effect)
+    // Rings (pulse effect) - White pulses (above polygons)
     this.globe
       .ringsData(this.locations)
       .ringColor(() => this.colors.ring)
-      .ringMaxRadius(4)
-      .ringPropagationSpeed(3)
-      .ringRepeatPeriod(1200);
+      .ringAltitude(0.015)
+      .ringMaxRadius(5)
+      .ringPropagationSpeed(2.5)
+      .ringRepeatPeriod(1000);
 
     // Globe material customization
     const globeMaterial = this.globe.globeMaterial();
     globeMaterial.color = new THREE.Color(this.colors.globe);
-    globeMaterial.emissive = new THREE.Color(0x220811);
-    globeMaterial.emissiveIntensity = 0.15;
-    globeMaterial.shininess = 0.9;
+    globeMaterial.emissive = new THREE.Color(0x110408);
+    globeMaterial.emissiveIntensity = 0.08;
+    globeMaterial.shininess = 0.7;
 
     // Position globe
     this.globe.position.set(0, 0, 0);
@@ -227,26 +274,49 @@ export class HexagonGlobe {
 
     window.addEventListener('resize', this.resizeHandler);
 
-    // Mouse interaction (drag to rotate)
+    // Mouse interaction (drag to rotate in all directions)
     let isDragging = false;
     let previousMouseX = 0;
+    let previousMouseY = 0;
 
     this.mouseDownHandler = (e) => {
       isDragging = true;
       previousMouseX = e.clientX;
+      previousMouseY = e.clientY;
+      this.renderer.domElement.style.cursor = 'grabbing';
+      // Pause auto-rotate while dragging
+      this.pauseAutoRotate = true;
     };
 
     this.mouseUpHandler = () => {
       isDragging = false;
+      if (this.renderer?.domElement) {
+        this.renderer.domElement.style.cursor = 'grab';
+      }
+      // Resume auto-rotate after dragging
+      this.pauseAutoRotate = false;
     };
 
     this.mouseMoveHandler = (e) => {
       if (isDragging && this.globe) {
         const deltaX = e.clientX - previousMouseX;
+        const deltaY = e.clientY - previousMouseY;
+
+        // Horizontal rotation (Y axis)
         this.globe.rotation.y += deltaX * 0.005;
+
+        // Vertical rotation (X axis) with limits
+        this.globe.rotation.x += deltaY * 0.005;
+        // Limit vertical rotation to prevent flipping
+        this.globe.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, this.globe.rotation.x));
+
         previousMouseX = e.clientX;
+        previousMouseY = e.clientY;
       }
     };
+
+    // Set initial cursor style
+    this.renderer.domElement.style.cursor = 'grab';
 
     this.renderer.domElement.addEventListener('mousedown', this.mouseDownHandler);
     window.addEventListener('mouseup', this.mouseUpHandler);
@@ -258,14 +328,65 @@ export class HexagonGlobe {
 
     this.rafId = requestAnimationFrame(() => this.animate());
 
-    // Auto rotate (slow)
+    // Auto rotate (slow) - only if not paused
     if (this.globe) {
-      this.globe.rotation.y += 0.001;
+      if (!this.pauseAutoRotate) {
+        this.globe.rotation.y += 0.001;
+      }
     }
 
     if (this.renderer && this.scene && this.camera) {
       this.renderer.render(this.scene, this.camera);
     }
+  }
+
+  // Rotate to specific city coordinates
+  rotateToCity(lat, lng, onComplete) {
+    if (!this.globe) {
+      console.warn('Globe not ready');
+      return;
+    }
+
+    console.log(`🌍 Rotating to: lat=${lat}, lng=${lng}`);
+    console.log(`📍 Current rotation: x=${this.globe.rotation.x}, y=${this.globe.rotation.y}`);
+
+    // Pause auto-rotate during animation
+    this.pauseAutoRotate = true;
+    console.log('⏸️ Auto-rotate paused');
+
+    // Convert lat/lng to globe rotation
+    // three-globe coordinate system:
+    // - Y rotation: controls which longitude faces camera (negative = east)
+    // - X rotation: controls tilt (latitude view)
+    // Camera is at z=280, looking at origin
+
+    // Calibration: Initial rotation shows Doha (lng=51.5) at rotation.y = -Math.PI/2.5 ≈ -1.257
+    // So we need an offset to match: -51.5*(PI/180) - offset = -1.257
+    // offset ≈ -0.358 (about -20.5 degrees)
+    const lngOffset = -0.358;
+    const targetY = -lng * (Math.PI / 180) + lngOffset;
+    const targetX = lat * (Math.PI / 180) * 0.3; // Slight tilt for latitude
+
+    console.log(`🎯 Target rotation: x=${targetX}, y=${targetY}`);
+
+    gsap.to(this.globe.rotation, {
+      x: targetX,
+      y: targetY,
+      duration: 1.2,
+      ease: 'power2.inOut',
+      onStart: () => {
+        console.log('🚀 Animation started');
+      },
+      onComplete: () => {
+        console.log('✅ Animation complete');
+        // Resume auto-rotate after a short delay
+        setTimeout(() => {
+          this.pauseAutoRotate = false;
+          console.log('▶️ Auto-rotate resumed');
+        }, 500);
+        if (onComplete) onComplete();
+      }
+    });
   }
 
   destroy() {
@@ -294,10 +415,18 @@ export class HexagonGlobe {
       this.scene.remove(this.globe);
     }
 
+    // Dispose wireframe fallback
+    if (this.wireframeSphere) {
+      this.scene.remove(this.wireframeSphere);
+      this.wireframeSphere.geometry.dispose();
+      this.wireframeSphere.material.dispose();
+    }
+
     // Clear references
     this.scene = null;
     this.camera = null;
     this.renderer = null;
     this.globe = null;
+    this.wireframeSphere = null;
   }
 }
