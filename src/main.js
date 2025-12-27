@@ -7,8 +7,12 @@ import { SVGLoader } from 'three/examples/jsm/loaders/SVGLoader.js'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { ScrollToPlugin } from 'gsap/ScrollToPlugin'
+import { TracingBeam } from './TracingBeam.js'
 
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
+
+// Global TracingBeam instance
+let tracingBeam = null;
 
 // Force scroll to top on page load/refresh
 window.history.scrollRestoration = 'manual';
@@ -1250,79 +1254,160 @@ window.addEventListener('resize', () => {
 });
 
 // --- 3D FLIP CARD SCROLL SYSTEM ---
-// CSS-based 3D flip cards with scroll-triggered page changes
+// Two-phase animation: Card enters from bottom, then pages flip
 
 function setupFlipCards() {
   const flipSections = document.querySelectorAll('.flip-section');
-  // Blur overlay is at body level (no transforms) for backdrop-filter to work
   const blurOverlay = document.getElementById('flip-blur-overlay');
 
   flipSections.forEach(section => {
     const container = section.querySelector('.flip-card-container');
+    const flipCard = section.querySelector('.flip-card');
     const pages = section.querySelectorAll('.flip-page');
     const dots = section.querySelectorAll('.progress-dot');
     const totalPages = pages.length;
 
-    if (totalPages === 0 || !container) return;
+    if (totalPages === 0 || !container || !flipCard) return;
 
-    // Set first page as active
+    // İlk sayfayı aktif yap
     if (pages[0]) pages[0].classList.add('active');
     if (dots[0]) dots[0].classList.add('active');
 
-    // ScrollTrigger for flip animations
+    // Başlangıç durumu - kart aşağıda
+    gsap.set(flipCard, {
+      y: 400,
+      rotateX: 25,
+      scale: 0.9,
+      transformOrigin: "center bottom"
+    });
+
+    let cardArrived = false;
+
+    // PHASE 1: Kart yukarı gelir (0% - 20% scroll) - hızlı giriş
+    // PHASE 2: Sayfalar değişir (20% - 100% scroll)
+
     ScrollTrigger.create({
       trigger: section,
-      start: "top 80%",
+      start: "top 95%",
       end: "bottom bottom",
-      scrub: 1,
+      scrub: 0.5,
       onEnter: () => {
+        // Giriş - anında görünür, transition yok
+        container.classList.remove('exiting');
+        flipCard.classList.remove('page-transitions');
         container.classList.add('visible');
         if (blurOverlay) blurOverlay.classList.add('visible');
       },
       onLeave: () => {
-        container.classList.remove('visible');
+        // Çıkış - fade out
+        container.classList.add('exiting');
+        flipCard.classList.remove('page-transitions');
         if (blurOverlay) blurOverlay.classList.remove('visible');
+        setTimeout(() => {
+          container.classList.remove('visible', 'exiting');
+          cardArrived = false;
+        }, 500);
       },
       onLeaveBack: () => {
-        container.classList.remove('visible');
+        // Geri çıkış - fade out
+        container.classList.add('exiting');
+        flipCard.classList.remove('page-transitions');
         if (blurOverlay) blurOverlay.classList.remove('visible');
+        setTimeout(() => {
+          container.classList.remove('visible', 'exiting');
+          cardArrived = false;
+          gsap.set(flipCard, { y: 400, rotateX: 25, scale: 0.9 });
+        }, 500);
       },
       onEnterBack: () => {
+        // Geri giriş - anında görünür, transition yok
+        container.classList.remove('exiting');
+        flipCard.classList.remove('page-transitions');
         container.classList.add('visible');
         if (blurOverlay) blurOverlay.classList.add('visible');
       },
       onUpdate: (self) => {
         const progress = self.progress;
-        const pageIndex = Math.min(
-          totalPages - 1,
-          Math.floor(progress * totalPages)
-        );
 
-        // Update pages
-        pages.forEach((page, i) => {
-          page.classList.remove('active', 'prev', 'next');
+        // PHASE 1: 0 - 0.2 → Kart yukarı gelir (hızlı)
+        if (progress <= 0.2) {
+          const phase1Progress = progress / 0.2; // 0-1 arası
 
-          if (i === pageIndex) {
-            page.classList.add('active');
-          } else if (i < pageIndex) {
-            page.classList.add('prev');
-          } else {
-            page.classList.add('next');
+          // Kart transform - eased
+          const easedProgress = gsap.parseEase("power2.out")(phase1Progress);
+          const currentY = 400 - (easedProgress * 400);
+          const currentRotateX = 25 - (easedProgress * 25);
+          const currentScale = 0.9 + (easedProgress * 0.1);
+
+          gsap.set(flipCard, {
+            y: currentY,
+            rotateX: currentRotateX,
+            scale: currentScale
+          });
+
+          cardArrived = false;
+
+          // Phase 1'de sadece page 1 görünür
+          pages.forEach((page, i) => {
+            page.classList.remove('active', 'prev', 'next');
+            if (i === 0) page.classList.add('active');
+            else page.classList.add('next');
+          });
+
+          dots.forEach((dot, i) => {
+            dot.classList.toggle('active', i === 0);
+          });
+
+        }
+        // PHASE 2: 0.2 - 1.0 → Sayfalar değişir
+        else {
+          // Kart tam pozisyonda
+          if (!cardArrived) {
+            cardArrived = true;
+            gsap.set(flipCard, { y: 0, rotateX: 0, scale: 1 });
+            // Sayfa geçişleri için transition'ı aktif et (küçük gecikme ile)
+            setTimeout(() => {
+              flipCard.classList.add('page-transitions');
+            }, 100);
           }
-        });
 
-        // Update dots
-        dots.forEach((dot, i) => {
-          dot.classList.toggle('active', i === pageIndex);
-        });
+          // Phase 2 progress (0-1)
+          const phase2Progress = (progress - 0.2) / 0.8;
+
+          // Hangi sayfa aktif
+          const pageIndex = Math.min(
+            totalPages - 1,
+            Math.floor(phase2Progress * totalPages)
+          );
+
+          // Sayfaları güncelle
+          pages.forEach((page, i) => {
+            page.classList.remove('active', 'prev', 'next');
+
+            if (i === pageIndex) {
+              page.classList.add('active');
+            } else if (i < pageIndex) {
+              page.classList.add('prev');
+            } else {
+              page.classList.add('next');
+            }
+          });
+
+          // Dots güncelle
+          dots.forEach((dot, i) => {
+            dot.classList.toggle('active', i === pageIndex);
+          });
+        }
       }
     });
 
-    // Click on dots to navigate
+    // Dot'lara tıklama - phase 2 alanına scroll
     dots.forEach((dot, i) => {
       dot.addEventListener('click', () => {
-        const targetProgress = i / totalPages;
-        const scrollTarget = section.offsetTop + (section.offsetHeight * targetProgress);
+        // Phase 2 başlangıcı + sayfa pozisyonu
+        const phase2Start = 0.2;
+        const pagePosition = phase2Start + (i / totalPages) * 0.8;
+        const scrollTarget = section.offsetTop + (section.offsetHeight * pagePosition);
 
         gsap.to(window, {
           scrollTo: { y: scrollTarget, autoKill: false },
@@ -1334,9 +1419,18 @@ function setupFlipCards() {
   });
 }
 
-// Initialize flip cards when DOM is ready
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', setupFlipCards);
-} else {
+// Initialize flip cards and tracing beam when DOM is ready
+function initializeUI() {
   setupFlipCards();
+
+  // Initialize TracingBeam after a short delay to ensure layout is ready
+  setTimeout(() => {
+    tracingBeam = new TracingBeam();
+  }, 100);
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initializeUI);
+} else {
+  initializeUI();
 }

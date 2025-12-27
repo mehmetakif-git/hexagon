@@ -417,33 +417,52 @@ p {
 
 .flip-card-container {
   position: sticky;
-  top: calc(50% - 320px);
+  top: 50%;
+  transform: translateY(-50%);
   width: 100%;
-  max-width: 700px;
+  max-width: 750px;
   z-index: 100;
-  /* Hidden initially until scroll activates */
+  /* 3D perspective for card entry animation */
+  perspective: 1200px;
+  perspective-origin: center bottom;
+  /* Başlangıçta gizli - opacity 0 */
   opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.5s ease, visibility 0.5s ease;
+  pointer-events: none;
 }
 
 .flip-card-container.visible {
   opacity: 1;
-  visibility: visible;
+  pointer-events: auto;
+}
+
+/* Sahneden çıkarken tüm kart fade out olacak - visible'ı override eder */
+.flip-card-container.visible.exiting {
+  transition: opacity 0.5s ease-out;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .flip-card {
   width: 100%;
-  height: 640px;
+  height: 720px;
   position: relative;
+  transform-origin: center bottom;
+  will-change: transform;
+  /* Başlangıç pozisyonu - ekranın altında (GSAP ile kontrol edilecek) */
 }
 
-/* Permanent blur layer - always visible during transitions */
+/* Smooth transition during scrub */
+.flip-card.animating {
+  transition: transform 0.1s ease-out;
+}
+
+/* Card background layer with backdrop blur */
 .flip-card::before {
   content: '';
   position: absolute;
   inset: 0;
   z-index: 1;
+  /* Backdrop blur effect */
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   background: rgba(20, 20, 30, 0.7);
@@ -462,18 +481,18 @@ p {
   height: 100%;
   z-index: 2;
   opacity: 0;
-  transition: opacity 0.4s ease;
   pointer-events: none;
 }
 
+/* Aktif sayfa */
 .flip-page.active {
   opacity: 1;
   pointer-events: auto;
 }
 
-.flip-page.prev,
-.flip-page.next {
-  opacity: 0;
+/* Sayfa değişimlerinde smooth geçiş - SADECE page-transitions varsa */
+.flip-card.page-transitions .flip-page {
+  transition: opacity 0.3s ease;
 }
 
 /* Flip page hexagon cards - transparent, blur is in .flip-card::before */
@@ -488,6 +507,17 @@ p {
   -webkit-backdrop-filter: none;
   border: none;
   box-shadow: none;
+  overflow: hidden;
+  /* Padding: top, right, bottom (extra for progress dots), left */
+  padding: 2.5rem 2.5rem 4.5rem 2.5rem;
+  box-sizing: border-box;
+}
+
+/* Stats grid inside flip cards */
+.flip-page .stats-grid {
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 129, 6, 0.2);
 }
 
 .flip-page .hexagon-card h2,
@@ -1085,6 +1115,139 @@ p {
   .process-step {
     flex-direction: column;
     gap: 0.5rem;
+  }
+}
+
+/* ========================================
+   TRACING BEAM - Scroll Progress Line
+   ======================================== */
+
+#tracing-beam-container {
+  position: fixed;
+  left: 30px;
+  top: 0;
+  width: 50px;
+  height: 100vh;
+  z-index: 100;
+  pointer-events: none;
+}
+
+#tracing-beam-svg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 50px;
+  overflow: visible;
+}
+
+/* Hareket eden nokta */
+.beam-dot {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  z-index: 10;
+}
+
+.beam-dot-inner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 10px;
+  height: 10px;
+  background: #FF8106;
+  border-radius: 50%;
+  box-shadow: 0 0 10px #FF8106, 0 0 20px #FF8106, 0 0 30px rgba(255, 129, 6, 0.5);
+}
+
+.beam-dot-pulse {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 20px;
+  height: 20px;
+  background: rgba(255, 129, 6, 0.3);
+  border-radius: 50%;
+  animation: beam-pulse 2s ease-in-out infinite;
+}
+
+@keyframes beam-pulse {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
+  50% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
+}
+
+/* Marker'lar */
+.beam-markers {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.beam-marker {
+  position: absolute;
+  left: 50px;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: rgba(5, 5, 5, 0.8);
+  border: 1px solid rgba(255, 129, 6, 0.2);
+  border-radius: 20px;
+  cursor: pointer;
+  pointer-events: auto;
+  opacity: 0.4;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.beam-marker:hover {
+  opacity: 1;
+  transform: translateY(-50%) translateX(5px);
+}
+
+.beam-marker.active {
+  opacity: 1;
+  border-color: #FF8106;
+  background: rgba(255, 129, 6, 0.15);
+  box-shadow: 0 0 20px rgba(255, 129, 6, 0.3);
+}
+
+.marker-icon {
+  font-size: 12px;
+  color: #FF8106;
+}
+
+.marker-label {
+  font-size: 10px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  color: rgba(255, 255, 255, 0.7);
+  text-transform: uppercase;
+  font-family: 'Orbitron', sans-serif;
+}
+
+.beam-marker.active .marker-label {
+  color: #FF8106;
+}
+
+/* Mobil responsive */
+@media (max-width: 768px) {
+  #tracing-beam-container {
+    left: 10px;
+    width: 30px;
+  }
+
+  .beam-marker {
+    left: 35px;
+  }
+
+  .marker-label {
+    display: none;
   }
 }
 
