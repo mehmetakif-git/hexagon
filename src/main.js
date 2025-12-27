@@ -8,6 +8,7 @@ import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { ScrollToPlugin } from 'gsap/ScrollToPlugin'
 import { TracingBeam } from './TracingBeam.js'
+import { HexagonGlobe } from './Globe.js'
 
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
@@ -624,6 +625,13 @@ function playNeonAnimation() {
   tl.call(() => {
     revealText();
   }, null, 4.5);
+
+  // Phase 4: TracingBeam reveal after text animation
+  tl.call(() => {
+    if (tracingBeam && tracingBeam.reveal) {
+      tracingBeam.reveal();
+    }
+  }, null, 5.5);
 }
 
 // Shuffle text animation state
@@ -1635,4 +1643,126 @@ if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initLogoMarquee);
 } else {
   initLogoMarquee();
+}
+
+// ========================================
+// CONTACT MODAL WITH 3D GLOBE
+// ========================================
+
+let hexagonGlobe = null;
+
+function initContactModal() {
+  const modal = document.getElementById('contact-modal');
+  const openBtn = document.getElementById('open-contact-modal');
+  const closeBtn = document.getElementById('close-contact-modal');
+  const backdrop = modal?.querySelector('.contact-modal-backdrop');
+  const globeContainer = document.getElementById('globe-container');
+  const contactForm = document.getElementById('contact-form');
+
+  if (!modal || !openBtn) return;
+
+  // Open modal
+  openBtn.addEventListener('click', () => {
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+
+    // Initialize globe after modal is visible (needs dimensions)
+    setTimeout(() => {
+      if (!hexagonGlobe && globeContainer) {
+        hexagonGlobe = new HexagonGlobe(globeContainer);
+      }
+    }, 100);
+  });
+
+  // Close modal function
+  function closeModal() {
+    modal.classList.remove('active');
+    document.body.style.overflow = '';
+
+    // Destroy globe to free resources
+    if (hexagonGlobe) {
+      hexagonGlobe.destroy();
+      hexagonGlobe = null;
+    }
+  }
+
+  // Close button
+  closeBtn?.addEventListener('click', closeModal);
+
+  // Close on backdrop click
+  backdrop?.addEventListener('click', closeModal);
+
+  // Close on Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal.classList.contains('active')) {
+      closeModal();
+    }
+  });
+
+  // Form submit handler
+  contactForm?.addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    const formData = new FormData(contactForm);
+    const data = Object.fromEntries(formData.entries());
+
+    console.log('Form submitted:', data);
+
+    // Show success feedback
+    const submitBtn = contactForm.querySelector('.form-submit');
+    const originalText = submitBtn.innerHTML;
+
+    submitBtn.innerHTML = `
+      <span>Message Sent!</span>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M20 6L9 17l-5-5"/>
+      </svg>
+    `;
+    submitBtn.style.background = 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)';
+
+    // Reset after 2 seconds
+    setTimeout(() => {
+      submitBtn.innerHTML = originalText;
+      submitBtn.style.background = '';
+      contactForm.reset();
+      closeModal();
+    }, 2000);
+  });
+
+  // Location hover effects (rotate globe to location)
+  const locations = modal.querySelectorAll('.globe-locations .location');
+  locations.forEach(loc => {
+    loc.addEventListener('click', () => {
+      // Remove active from all
+      locations.forEach(l => l.classList.remove('active'));
+      // Add active to clicked
+      loc.classList.add('active');
+
+      // Rotate globe to location (if we have access)
+      if (hexagonGlobe && hexagonGlobe.globe) {
+        const city = loc.dataset.city;
+        const rotations = {
+          doha: -Math.PI / 2.5,
+          london: Math.PI / 6,
+          istanbul: -Math.PI / 4,
+          dubai: -Math.PI / 2
+        };
+
+        if (rotations[city] !== undefined) {
+          gsap.to(hexagonGlobe.globe.rotation, {
+            y: rotations[city],
+            duration: 1,
+            ease: 'power2.out'
+          });
+        }
+      }
+    });
+  });
+}
+
+// Initialize contact modal when DOM ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initContactModal);
+} else {
+  initContactModal();
 }

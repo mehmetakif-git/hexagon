@@ -647,7 +647,7 @@
               <p class="section-subtitle">Get Started</p>
               <p>Click below to start a conversation with our team. We typically respond within 24 hours.</p>
               <div class="contact-cta">
-                <a href="mailto:hello@hexagon.pro" class="cta-button">Contact Us</a>
+                <button type="button" class="cta-button" id="open-contact-modal">Contact Us</button>
               </div>
             </div>
           </div>
@@ -661,6 +661,90 @@
         </div>
       </div>
     </section>
+
+    <!-- Contact Modal with Globe -->
+    <div class="contact-modal" id="contact-modal">
+      <div class="contact-modal-backdrop"></div>
+      <div class="contact-modal-content">
+        <button class="contact-modal-close" id="close-contact-modal">
+          <span></span>
+          <span></span>
+        </button>
+
+        <div class="contact-modal-grid">
+          <!-- Left Side: Contact Form -->
+          <div class="contact-form-side">
+            <div class="form-header">
+              <span class="form-label">Get In Touch</span>
+              <h2 class="form-title">Let's Create Something Extraordinary</h2>
+              <p class="form-subtitle">Fill out the form below and our team will get back to you within 24 hours.</p>
+            </div>
+
+            <form class="contact-form" id="contact-form">
+              <div class="form-group">
+                <label for="contact-name">Full Name</label>
+                <input type="text" id="contact-name" name="name" placeholder="John Doe" required>
+              </div>
+
+              <div class="form-group">
+                <label for="contact-email">Email Address</label>
+                <input type="email" id="contact-email" name="email" placeholder="john@company.com" required>
+              </div>
+
+              <div class="form-group">
+                <label for="contact-message">Message</label>
+                <textarea id="contact-message" name="message" placeholder="Tell us about your project..." rows="3" required></textarea>
+              </div>
+
+              <button type="submit" class="form-submit">
+                <span>Send Message</span>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+                </svg>
+              </button>
+            </form>
+
+            <div class="form-contact-info">
+              <div class="info-item">
+                <span class="info-icon">@</span>
+                <span>hello@hexagon.pro</span>
+              </div>
+              <div class="info-item">
+                <span class="info-icon">T</span>
+                <span>+44 20 7946 0000</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Side: 3D Globe -->
+          <div class="contact-globe-side">
+            <div class="globe-wrapper">
+              <div class="globe-container" id="globe-container"></div>
+              <div class="globe-overlay">
+                <span class="globe-label">Global Reach</span>
+                <h3 class="globe-title">Worldwide Presence</h3>
+              </div>
+              <div class="globe-locations">
+                <span class="location active" data-city="doha">Doha (HQ)</span>
+                <span class="location" data-city="london">London</span>
+                <span class="location" data-city="istanbul">Istanbul</span>
+                <span class="location" data-city="dubai">Dubai</span>
+              </div>
+              <div class="globe-stats">
+                <div class="globe-stat">
+                  <span class="stat-value">40+</span>
+                  <span class="stat-label">Countries</span>
+                </div>
+                <div class="globe-stat">
+                  <span class="stat-value">500+</span>
+                  <span class="stat-label">Events</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- Logo Marquee Section - Footer üstünde -->
     <section class="logo-marquee-section" id="partners">
