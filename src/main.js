@@ -6,6 +6,7 @@ import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPa
 import { SVGLoader } from 'three/examples/jsm/loaders/SVGLoader.js'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { SaberSlashEffect } from './SaberSlashEffect.js'
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -99,6 +100,7 @@ scene.add(bgGroup);
 const loader = new SVGLoader();
 let hexagonGroup;
 let hexagonTextMesh = null;
+let saberEffect = null;
 
 // Service text labels for each section
 const serviceTexts = ['HEXAGON', 'ABOUT', 'EVENT', 'MEDIA', 'DIGITAL', 'CONSULT', 'CONTACT'];
@@ -449,6 +451,9 @@ loader.load('/assets/SVG/hexagon-logo.svg', (data) => {
 
   // Create initial embossed text
   createHexagonText('HEXAGON');
+
+  // Initialize Saber Slash Effect
+  saberEffect = new SaberSlashEffect(scene, camera, renderer);
 
   playNeonAnimation();
   setupScrollAnimations();
@@ -953,10 +958,16 @@ function setupScrollAnimations() {
 const clock = new THREE.Clock();
 function animate() {
   requestAnimationFrame(animate);
+  const deltaTime = clock.getDelta();
   const elapsedTime = clock.getElapsedTime();
 
   // Subtle background glow pulse
   bgGlowPoint.intensity = 20 + Math.sin(elapsedTime * 0.5) * 3;
+
+  // Update Saber Slash Effect
+  if (saberEffect && hexagonGroup) {
+    saberEffect.update(deltaTime, hexagonGroup);
+  }
 
   composer.render();
 }

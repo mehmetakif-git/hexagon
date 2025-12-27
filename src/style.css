@@ -391,4 +391,155 @@ p {
   }
 }
 
+/* ============================================
+   SABER SLASH EFFECT - Lightsaber Kesme Efekti
+   ============================================ */
 
+/* Aktif kesişim durumu */
+.hexagon-card.saber-active {
+  --slash-edge: left;
+  --slash-position: 50%;
+  --slash-angle: 180deg;
+}
+
+/* Dinamik kenar glow pseudo-element */
+.hexagon-card.saber-active .saber-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 100;
+  opacity: 1;
+  transition: opacity 0.1s ease-out;
+}
+
+/* Kenar bazlı açı ayarları */
+.hexagon-card.saber-active[style*="--slash-edge: left"],
+.hexagon-card.saber-active[style*="--slash-edge: right"] {
+  --slash-angle: 180deg;
+}
+
+.hexagon-card.saber-active[style*="--slash-edge: top"],
+.hexagon-card.saber-active[style*="--slash-edge: bottom"] {
+  --slash-angle: 90deg;
+}
+
+/* Glow line efekti */
+.hexagon-card.saber-active::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background:
+    radial-gradient(circle at 30% 30%, rgba(255, 129, 6, 0.15) 0%, transparent 50%),
+    linear-gradient(
+      var(--slash-angle),
+      transparent,
+      transparent calc(var(--slash-position) - 30px),
+      rgba(255, 129, 6, 0.1) calc(var(--slash-position) - 15px),
+      rgba(255, 170, 0, 0.4) calc(var(--slash-position) - 5px),
+      rgba(255, 255, 255, 0.8) var(--slash-position),
+      rgba(255, 170, 0, 0.4) calc(var(--slash-position) + 5px),
+      rgba(255, 129, 6, 0.1) calc(var(--slash-position) + 15px),
+      transparent calc(var(--slash-position) + 30px),
+      transparent
+    );
+  pointer-events: none;
+  animation: saber-flicker 0.08s ease-in-out infinite;
+  z-index: 50;
+}
+
+/* Aktif durumda gelişmiş box-shadow */
+.hexagon-card.saber-active {
+  box-shadow:
+    0 25px 50px rgba(0, 0, 0, 0.5),
+    0 0 100px var(--card-glow),
+    0 0 40px rgba(255, 129, 6, 0.4),
+    0 0 80px rgba(255, 170, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 129, 6, 0.5);
+}
+
+/* Sol kenar aktif */
+.hexagon-card.saber-active[style*="--slash-edge: left"] {
+  border-left-color: rgba(255, 170, 0, 0.8);
+  box-shadow:
+    0 25px 50px rgba(0, 0, 0, 0.5),
+    0 0 100px var(--card-glow),
+    -20px 0 40px rgba(255, 129, 6, 0.5),
+    -30px 0 60px rgba(255, 170, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Sağ kenar aktif */
+.hexagon-card.saber-active[style*="--slash-edge: right"] {
+  border-right-color: rgba(255, 170, 0, 0.8);
+  box-shadow:
+    0 25px 50px rgba(0, 0, 0, 0.5),
+    0 0 100px var(--card-glow),
+    20px 0 40px rgba(255, 129, 6, 0.5),
+    30px 0 60px rgba(255, 170, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Üst kenar aktif */
+.hexagon-card.saber-active[style*="--slash-edge: top"] {
+  border-top-color: rgba(255, 170, 0, 0.8);
+  box-shadow:
+    0 25px 50px rgba(0, 0, 0, 0.5),
+    0 0 100px var(--card-glow),
+    0 -20px 40px rgba(255, 129, 6, 0.5),
+    0 -30px 60px rgba(255, 170, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Alt kenar aktif */
+.hexagon-card.saber-active[style*="--slash-edge: bottom"] {
+  border-bottom-color: rgba(255, 170, 0, 0.8);
+  box-shadow:
+    0 25px 50px rgba(0, 0, 0, 0.5),
+    0 0 100px var(--card-glow),
+    0 20px 40px rgba(255, 129, 6, 0.5),
+    0 30px 60px rgba(255, 170, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Flicker animasyonu */
+@keyframes saber-flicker {
+  0%, 100% {
+    opacity: 1;
+    filter: brightness(1);
+  }
+  25% {
+    opacity: 0.95;
+    filter: brightness(1.1);
+  }
+  50% {
+    opacity: 0.9;
+    filter: brightness(0.95);
+  }
+  75% {
+    opacity: 0.98;
+    filter: brightness(1.05);
+  }
+}
+
+/* Hafif titreşim animasyonu */
+@keyframes saber-shake {
+  0%, 100% { transform: translate(0, 0); }
+  25% { transform: translate(1px, 0); }
+  50% { transform: translate(-1px, 1px); }
+  75% { transform: translate(0, -1px); }
+}
+
+.hexagon-card.saber-active .content-box {
+  animation: saber-shake 0.05s ease-in-out infinite;
+}
+
+/* Geçiş efektleri */
+.hexagon-card {
+  transition:
+    box-shadow 0.15s ease-out,
+    border-color 0.15s ease-out;
+}
