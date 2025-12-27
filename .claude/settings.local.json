@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cat:*)",
+      "Bash(npm run dev:*)",
+      "Bash(curl:*)",
+      "Bash(powershell -Command \"New-Item -ItemType Directory -Force -Path 'e:/hexagon/public/fonts'; Invoke-WebRequest -Uri 'https://threejs.org/examples/fonts/helvetiker_bold.typeface.json' -OutFile 'e:/hexagon/public/fonts/helvetiker_bold.typeface.json'\":*)",
+      "Bash(dir:*)",
+      "Bash(gh auth status:*)",
+      "Bash(gh repo view:*)"
+    ]
+  }
+}
