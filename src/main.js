@@ -9,6 +9,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { ScrollToPlugin } from 'gsap/ScrollToPlugin'
 import { TracingBeam } from './TracingBeam.js'
 import { HexagonGlobe } from './Globe.js'
+import { EventModal } from './EventModal.js'
 
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
@@ -1292,23 +1293,40 @@ function setupFlipCards() {
 
     let cardArrived = false;
 
-    // PHASE 1: Kart yukarı gelir (0% - 20% scroll) - hızlı giriş
+    // Sayfayı değiştiren fonksiyon
+    function setPage(pageIndex) {
+      pages.forEach((page, i) => {
+        page.classList.remove('active', 'prev', 'next');
+        if (i === pageIndex) {
+          page.classList.add('active');
+        } else if (i < pageIndex) {
+          page.classList.add('prev');
+        } else {
+          page.classList.add('next');
+        }
+      });
+
+      dots.forEach((dot, i) => {
+        dot.classList.toggle('active', i === pageIndex);
+      });
+    }
+
+    // PHASE 1: Kart yukarı gelir (0% - 20% scroll)
     // PHASE 2: Sayfalar değişir (20% - 100% scroll)
 
-    ScrollTrigger.create({
+    // ScrollTrigger'ı değişkene ata ki dot click'te kullanabilelim
+    const trigger = ScrollTrigger.create({
       trigger: section,
       start: "top 95%",
       end: "bottom bottom",
       scrub: 0.5,
       onEnter: () => {
-        // Giriş - anında görünür, transition yok
         container.classList.remove('exiting');
         flipCard.classList.remove('page-transitions');
         container.classList.add('visible');
         if (blurOverlay) blurOverlay.classList.add('visible');
       },
       onLeave: () => {
-        // Çıkış - fade out
         container.classList.add('exiting');
         flipCard.classList.remove('page-transitions');
         if (blurOverlay) blurOverlay.classList.remove('visible');
@@ -1318,7 +1336,6 @@ function setupFlipCards() {
         }, 500);
       },
       onLeaveBack: () => {
-        // Geri çıkış - fade out
         container.classList.add('exiting');
         flipCard.classList.remove('page-transitions');
         if (blurOverlay) blurOverlay.classList.remove('visible');
@@ -1329,7 +1346,6 @@ function setupFlipCards() {
         }, 500);
       },
       onEnterBack: () => {
-        // Geri giriş - anında görünür, transition yok
         container.classList.remove('exiting');
         flipCard.classList.remove('page-transitions');
         container.classList.add('visible');
@@ -1338,11 +1354,9 @@ function setupFlipCards() {
       onUpdate: (self) => {
         const progress = self.progress;
 
-        // PHASE 1: 0 - 0.2 → Kart yukarı gelir (hızlı)
+        // PHASE 1: 0 - 0.2 → Kart yukarı gelir
         if (progress <= 0.2) {
-          const phase1Progress = progress / 0.2; // 0-1 arası
-
-          // Kart transform - eased
+          const phase1Progress = progress / 0.2;
           const easedProgress = gsap.parseEase("power2.out")(phase1Progress);
           const currentY = 400 - (easedProgress * 400);
           const currentRotateX = 25 - (easedProgress * 25);
@@ -1355,72 +1369,43 @@ function setupFlipCards() {
           });
 
           cardArrived = false;
-
-          // Phase 1'de sadece page 1 görünür
-          pages.forEach((page, i) => {
-            page.classList.remove('active', 'prev', 'next');
-            if (i === 0) page.classList.add('active');
-            else page.classList.add('next');
-          });
-
-          dots.forEach((dot, i) => {
-            dot.classList.toggle('active', i === 0);
-          });
-
+          setPage(0);
         }
-        // PHASE 2: 0.2 - 1.0 → Sayfalar değişir
+        // PHASE 2: 0.2 - 1.0 → Kart sahnede, scroll ile sayfa değişir
         else {
-          // Kart tam pozisyonda
           if (!cardArrived) {
             cardArrived = true;
             gsap.set(flipCard, { y: 0, rotateX: 0, scale: 1 });
-            // Sayfa geçişleri için transition'ı aktif et (küçük gecikme ile)
             setTimeout(() => {
               flipCard.classList.add('page-transitions');
             }, 100);
           }
 
-          // Phase 2 progress (0-1)
           const phase2Progress = (progress - 0.2) / 0.8;
-
-          // Hangi sayfa aktif
           const pageIndex = Math.min(
             totalPages - 1,
             Math.floor(phase2Progress * totalPages)
           );
-
-          // Sayfaları güncelle
-          pages.forEach((page, i) => {
-            page.classList.remove('active', 'prev', 'next');
-
-            if (i === pageIndex) {
-              page.classList.add('active');
-            } else if (i < pageIndex) {
-              page.classList.add('prev');
-            } else {
-              page.classList.add('next');
-            }
-          });
-
-          // Dots güncelle
-          dots.forEach((dot, i) => {
-            dot.classList.toggle('active', i === pageIndex);
-          });
+          setPage(pageIndex);
         }
       }
     });
 
-    // Dot'lara tıklama - phase 2 alanına scroll
+    // Dot'lara tıklama - ScrollTrigger'ın gerçek start/end değerlerini kullan
     dots.forEach((dot, i) => {
       dot.addEventListener('click', () => {
-        // Phase 2 başlangıcı + sayfa pozisyonu
-        const phase2Start = 0.2;
-        const pagePosition = phase2Start + (i / totalPages) * 0.8;
-        const scrollTarget = section.offsetTop + (section.offsetHeight * pagePosition);
+        // Sayfa i için hedef progress: aralığın ortası
+        const phase2Progress = (i + 0.5) / totalPages;
+        const targetProgress = 0.2 + (phase2Progress * 0.8);
+
+        // ScrollTrigger'ın start ve end değerlerini kullanarak gerçek scroll pozisyonunu hesapla
+        const scrollStart = trigger.start;
+        const scrollEnd = trigger.end;
+        const scrollTarget = scrollStart + (scrollEnd - scrollStart) * targetProgress;
 
         gsap.to(window, {
           scrollTo: { y: scrollTarget, autoKill: false },
-          duration: 0.8,
+          duration: 0.6,
           ease: "power2.inOut"
         });
       });
@@ -1770,4 +1755,21 @@ if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initContactModal);
 } else {
   initContactModal();
+}
+
+// ========================================
+// EVENT MODAL WITH 3D CAROUSEL
+// ========================================
+
+let eventModal = null;
+
+function initEventModal() {
+  eventModal = new EventModal();
+}
+
+// Initialize event modal when DOM ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initEventModal);
+} else {
+  initEventModal();
 }

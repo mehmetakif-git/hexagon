@@ -2156,3 +2156,521 @@ p {
   }
 }
 
+/* ========================================
+   EVENT MODAL WITH 3D CAROUSEL
+   ======================================== */
+
+.event-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 10001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.4s ease, visibility 0.4s ease;
+}
+
+.event-modal.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.event-modal-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.92);
+  backdrop-filter: blur(15px);
+}
+
+.event-modal-content {
+  position: relative;
+  width: 95%;
+  max-width: 1200px;
+  height: 90vh;
+  max-height: 850px;
+  /* Hexagon Card Style */
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  background: rgba(20, 20, 30, 0.95);
+  border: 1px solid rgba(255, 129, 6, 0.3);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow:
+    0 25px 50px rgba(0, 0, 0, 0.5),
+    0 0 100px rgba(255, 68, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Top gradient line */
+.event-modal-content::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--primary), transparent);
+  opacity: 0.6;
+  z-index: 5;
+}
+
+/* Radial glow */
+.event-modal-content::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle at 50% 0%, rgba(255, 129, 6, 0.08) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Card indicator */
+.event-modal-indicator {
+  position: absolute;
+  top: 1.5rem;
+  left: 2rem;
+  font-family: 'Alexandria', sans-serif;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: rgba(255, 129, 6, 0.12);
+  line-height: 1;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* Close Button */
+.event-modal-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 44px;
+  height: 44px;
+  background: rgba(255, 129, 6, 0.08);
+  border: 1px solid rgba(255, 129, 6, 0.25);
+  border-radius: 8px;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.3s ease;
+}
+
+.event-modal-close:hover {
+  background: rgba(255, 129, 6, 0.2);
+  border-color: var(--primary);
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(255, 129, 6, 0.3);
+}
+
+.event-modal-close span {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 2px;
+  background: white;
+  border-radius: 1px;
+}
+
+.event-modal-close span:first-child {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.event-modal-close span:last-child {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+/* ========================================
+   3D CAROUSEL
+   ======================================== */
+
+.event-carousel-wrapper {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2rem 2rem 2rem;
+  overflow: hidden;
+  /* 3D space */
+  perspective: 1200px;
+  perspective-origin: center center;
+}
+
+.event-carousel-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  max-height: 450px;
+  overflow: visible;
+}
+
+.event-carousel-track {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform-style: preserve-3d;
+  cursor: grab;
+}
+
+.event-carousel-track:active {
+  cursor: grabbing;
+}
+
+/* Carousel Item */
+.carousel-item {
+  position: absolute;
+  width: 400px;
+  height: 280px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.5);
+  border: 2px solid rgba(255, 129, 6, 0.15);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+}
+
+.carousel-item.active {
+  border-color: var(--primary);
+  box-shadow:
+    0 30px 60px rgba(0, 0, 0, 0.5),
+    0 0 50px rgba(255, 129, 6, 0.2);
+}
+
+.carousel-item.error {
+  background: linear-gradient(135deg, rgba(30, 30, 40, 0.9) 0%, rgba(20, 20, 30, 0.9) 100%);
+}
+
+.carousel-item img,
+.carousel-item video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.carousel-item-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 1.5rem;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.85));
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.carousel-item:hover .carousel-item-overlay,
+.carousel-item.active .carousel-item-overlay {
+  opacity: 1;
+}
+
+.item-number {
+  font-family: 'Alexandria', sans-serif;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--primary);
+  text-shadow: 0 0 15px rgba(255, 129, 6, 0.6);
+}
+
+.play-icon {
+  width: 60px;
+  height: 60px;
+  background: rgba(255, 129, 6, 0.9);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  color: white;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  box-shadow: 0 0 30px rgba(255, 129, 6, 0.5);
+}
+
+.carousel-item:hover .play-icon {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1.1);
+}
+
+/* Navigation Arrows */
+.carousel-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 54px;
+  height: 54px;
+  background: rgba(255, 129, 6, 0.1);
+  border: 1px solid rgba(255, 129, 6, 0.3);
+  border-radius: 50%;
+  color: white;
+  cursor: pointer;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.carousel-nav:hover {
+  background: rgba(255, 129, 6, 0.25);
+  border-color: var(--primary);
+  box-shadow: 0 0 30px rgba(255, 129, 6, 0.35);
+}
+
+.carousel-nav-prev {
+  left: 25px;
+}
+
+.carousel-nav-next {
+  right: 25px;
+}
+
+.carousel-nav svg {
+  transition: transform 0.3s ease;
+}
+
+.carousel-nav:hover svg {
+  transform: scale(1.2);
+}
+
+/* ========================================
+   EVENT MODAL INFO SECTION
+   ======================================== */
+
+.event-modal-info {
+  padding: 1.5rem 2.5rem 2rem 2.5rem;
+  background: rgba(0, 0, 0, 0.4);
+  border-top: 1px solid rgba(255, 129, 6, 0.15);
+  position: relative;
+  z-index: 1;
+}
+
+.event-modal-header {
+  margin-bottom: 1rem;
+}
+
+.event-category-tag {
+  display: inline-block;
+  padding: 5px 14px;
+  background: rgba(255, 129, 6, 0.1);
+  border: 1px solid rgba(255, 129, 6, 0.4);
+  border-radius: 50px;
+  font-size: 0.65rem;
+  font-weight: 500;
+  letter-spacing: 2px;
+  color: var(--primary);
+  text-transform: uppercase;
+  margin-bottom: 0.75rem;
+}
+
+.event-modal-title {
+  font-family: 'Alexandria', sans-serif;
+  font-size: 1.6rem;
+  margin: 0 0 0.5rem 0;
+  background: linear-gradient(90deg, #fff 0%, #888 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.event-modal-desc {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0;
+  max-width: 600px;
+}
+
+/* Indicators */
+.carousel-indicators {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+  margin: 1rem 0;
+}
+
+.carousel-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 129, 6, 0.3);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.carousel-dot:hover {
+  background: rgba(255, 129, 6, 0.5);
+  transform: scale(1.2);
+}
+
+.carousel-dot.active {
+  width: 28px;
+  border-radius: 4px;
+  background: var(--primary);
+  box-shadow: 0 0 15px rgba(255, 129, 6, 0.5);
+}
+
+.carousel-ellipsis {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.8rem;
+  letter-spacing: 2px;
+}
+
+/* Footer */
+.event-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 129, 6, 0.1);
+}
+
+.carousel-counter {
+  font-family: 'Alexandria', sans-serif;
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 3px;
+}
+
+.event-back-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 22px;
+  background: rgba(255, 129, 6, 0.08);
+  border: 1px solid rgba(255, 129, 6, 0.25);
+  border-radius: 8px;
+  color: var(--primary);
+  font-family: 'Alexandria', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.event-back-btn:hover {
+  background: rgba(255, 129, 6, 0.15);
+  border-color: var(--primary);
+  transform: translateX(-3px);
+}
+
+.event-back-btn svg {
+  transition: transform 0.3s ease;
+}
+
+.event-back-btn:hover svg {
+  transform: translateX(-4px);
+}
+
+/* ========================================
+   EVENT MODAL RESPONSIVE
+   ======================================== */
+
+@media (max-width: 1024px) {
+  .carousel-item {
+    width: 340px;
+    height: 240px;
+  }
+
+  .carousel-nav {
+    width: 48px;
+    height: 48px;
+  }
+
+  .carousel-nav-prev {
+    left: 15px;
+  }
+
+  .carousel-nav-next {
+    right: 15px;
+  }
+}
+
+@media (max-width: 768px) {
+  .event-modal-content {
+    width: 100%;
+    height: 100%;
+    max-height: none;
+    border-radius: 0;
+  }
+
+  .carousel-item {
+    width: 280px;
+    height: 200px;
+  }
+
+  .event-carousel-wrapper {
+    padding: 2rem 1rem 1rem 1rem;
+  }
+
+  .event-modal-info {
+    padding: 1rem 1.5rem 1.5rem 1.5rem;
+  }
+
+  .event-modal-title {
+    font-size: 1.3rem;
+  }
+
+  .carousel-nav {
+    width: 42px;
+    height: 42px;
+  }
+
+  .carousel-nav-prev {
+    left: 10px;
+  }
+
+  .carousel-nav-next {
+    right: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .carousel-item {
+    width: 260px;
+    height: 180px;
+  }
+
+  .carousel-nav {
+    display: none;
+  }
+
+  .event-modal-footer {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+
+  .event-back-btn {
+    justify-content: center;
+  }
+
+  .carousel-counter {
+    text-align: center;
+  }
+}
