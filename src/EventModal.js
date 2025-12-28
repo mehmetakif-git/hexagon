@@ -44,10 +44,10 @@ export class EventModal {
     this.dragStartX = 0;
     this.dragCurrentX = 0;
 
-    // Carousel settings - optimized for overlap effect
-    this.itemWidth = 500;
-    this.gap = 16;
-    this.trackOffset = 280; // Smaller for overlap effect
+    // Carousel settings - centered layout
+    this.itemWidth = 480;
+    this.itemHeight = 320;
+    this.trackOffset = 350; // Space between card centers
 
     // 3D Model Viewer
     this.modelViewer = null;
@@ -342,34 +342,59 @@ export class EventModal {
     const container = this.track.parentElement;
     if (!container) return;
 
-    // Center point
+    // Container dimensions
     const containerWidth = container.offsetWidth;
+    const containerHeight = container.offsetHeight;
+
+    // Calculate center position for active card
+    // Card's left edge = (containerWidth / 2) - (itemWidth / 2)
     const centerX = (containerWidth - this.itemWidth) / 2;
+    const centerY = (containerHeight - this.itemHeight) / 2;
 
     items.forEach((item, index) => {
-      const diff = index - this.currentIndex;
+      const diff = index - this.currentIndex; // -2, -1, 0, 1, 2
 
-      // X position - offset from center
-      const xOffset = diff * this.trackOffset;
+      // =====================
+      // X POSITION - CRITICAL
+      // =====================
+      // Active card (diff=0) → centerX
+      // Previous card (diff=-1) → centerX - trackOffset
+      // Next card (diff=+1) → centerX + trackOffset
+      const xPosition = centerX + (diff * this.trackOffset);
 
-      // Rotation - max 25° (less aggressive than 45°)
-      const maxRotation = 25;
-      const rotateY = Math.max(-maxRotation, Math.min(maxRotation, diff * 18));
+      // =====================
+      // Y POSITION - All same height
+      // =====================
+      const yPosition = centerY;
 
-      // Scale - active is full size, others much smaller for depth
-      const scale = index === this.currentIndex ? 1 : 0.7;
+      // =====================
+      // ROTATION - Subtle angle
+      // =====================
+      const rotateY = Math.max(-35, Math.min(35, diff * 15));
 
-      // Z position - more pronounced depth
-      const zOffset = -Math.abs(diff) * 120;
+      // =====================
+      // SCALE - Clear difference
+      // =====================
+      const scale = Math.max(0.55, 1 - Math.abs(diff) * 0.18);
 
-      // Opacity - fade out distant items
-      const opacity = Math.abs(diff) > 2 ? 0 : 1 - Math.abs(diff) * 0.2;
+      // =====================
+      // Z POSITION - Depth
+      // =====================
+      const zOffset = -Math.abs(diff) * 80;
 
-      // Z-index - active in front
+      // =====================
+      // OPACITY
+      // =====================
+      const opacity = Math.max(0, 1 - Math.abs(diff) * 0.25);
+
+      // =====================
+      // Z-INDEX
+      // =====================
       const zIndex = 100 - Math.abs(diff) * 10;
 
       const props = {
-        x: centerX + xOffset,
+        x: xPosition,
+        y: yPosition,
         rotateY: rotateY,
         z: zOffset,
         scale: scale,
@@ -387,10 +412,10 @@ export class EventModal {
         gsap.set(item, props);
       }
 
-      // Active class
+      // Active class toggle
       item.classList.toggle('active', index === this.currentIndex);
 
-      // Play/pause video
+      // Video handling
       const video = item.querySelector('video');
       if (video) {
         if (index === this.currentIndex) {
