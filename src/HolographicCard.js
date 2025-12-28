@@ -1,5 +1,135 @@
 // src/HolographicCard.js
-// Advanced 3D Holographic Profile Card Modal with Interactive Effects
+// 3D Holographic Profile Card - Converted from React to Vanilla JS
+
+const ANIMATION_CONFIG = {
+  INITIAL_DURATION: 1200,
+  INITIAL_X_OFFSET: 70,
+  INITIAL_Y_OFFSET: 60,
+  ENTER_TRANSITION_MS: 180
+};
+
+const clamp = (v, min = 0, max = 100) => Math.min(Math.max(v, min), max);
+const round = (v, precision = 3) => parseFloat(v.toFixed(precision));
+const adjust = (v, fMin, fMax, tMin, tMax) => round(tMin + ((tMax - tMin) * (v - fMin)) / (fMax - fMin));
+
+// TiltEngine - Handles 3D tilt animation with smooth interpolation
+class TiltEngine {
+  constructor(shell, wrap) {
+    this.shell = shell;
+    this.wrap = wrap;
+    this.rafId = null;
+    this.running = false;
+    this.lastTs = 0;
+
+    this.currentX = 0;
+    this.currentY = 0;
+    this.targetX = 0;
+    this.targetY = 0;
+
+    this.DEFAULT_TAU = 0.14;
+    this.INITIAL_TAU = 0.6;
+    this.initialUntil = 0;
+  }
+
+  setVarsFromXY(x, y) {
+    if (!this.shell || !this.wrap) return;
+
+    const width = this.shell.clientWidth || 1;
+    const height = this.shell.clientHeight || 1;
+
+    const percentX = clamp((100 / width) * x);
+    const percentY = clamp((100 / height) * y);
+
+    const centerX = percentX - 50;
+    const centerY = percentY - 50;
+
+    const properties = {
+      '--pointer-x': `${percentX}%`,
+      '--pointer-y': `${percentY}%`,
+      '--background-x': `${adjust(percentX, 0, 100, 35, 65)}%`,
+      '--background-y': `${adjust(percentY, 0, 100, 35, 65)}%`,
+      '--pointer-from-center': `${clamp(Math.hypot(percentY - 50, percentX - 50) / 50, 0, 1)}`,
+      '--pointer-from-top': `${percentY / 100}`,
+      '--pointer-from-left': `${percentX / 100}`,
+      '--rotate-x': `${round(-(centerX / 5))}deg`,
+      '--rotate-y': `${round(centerY / 4)}deg`
+    };
+
+    for (const [k, v] of Object.entries(properties)) {
+      this.wrap.style.setProperty(k, v);
+    }
+  }
+
+  step(ts) {
+    if (!this.running) return;
+    if (this.lastTs === 0) this.lastTs = ts;
+    const dt = (ts - this.lastTs) / 1000;
+    this.lastTs = ts;
+
+    const tau = ts < this.initialUntil ? this.INITIAL_TAU : this.DEFAULT_TAU;
+    const k = 1 - Math.exp(-dt / tau);
+
+    this.currentX += (this.targetX - this.currentX) * k;
+    this.currentY += (this.targetY - this.currentY) * k;
+
+    this.setVarsFromXY(this.currentX, this.currentY);
+
+    const stillFar = Math.abs(this.targetX - this.currentX) > 0.05 ||
+                     Math.abs(this.targetY - this.currentY) > 0.05;
+
+    if (stillFar || document.hasFocus()) {
+      this.rafId = requestAnimationFrame((ts) => this.step(ts));
+    } else {
+      this.running = false;
+      this.lastTs = 0;
+      if (this.rafId) {
+        cancelAnimationFrame(this.rafId);
+        this.rafId = null;
+      }
+    }
+  }
+
+  start() {
+    if (this.running) return;
+    this.running = true;
+    this.lastTs = 0;
+    this.rafId = requestAnimationFrame((ts) => this.step(ts));
+  }
+
+  setImmediate(x, y) {
+    this.currentX = x;
+    this.currentY = y;
+    this.setVarsFromXY(this.currentX, this.currentY);
+  }
+
+  setTarget(x, y) {
+    this.targetX = x;
+    this.targetY = y;
+    this.start();
+  }
+
+  toCenter() {
+    if (!this.shell) return;
+    this.setTarget(this.shell.clientWidth / 2, this.shell.clientHeight / 2);
+  }
+
+  beginInitial(durationMs) {
+    this.initialUntil = performance.now() + durationMs;
+    this.start();
+  }
+
+  getCurrent() {
+    return { x: this.currentX, y: this.currentY, tx: this.targetX, ty: this.targetY };
+  }
+
+  destroy() {
+    if (this.rafId) cancelAnimationFrame(this.rafId);
+    this.rafId = null;
+    this.running = false;
+    this.lastTs = 0;
+  }
+}
+
 
 export class HolographicCard {
   constructor() {
@@ -7,93 +137,55 @@ export class HolographicCard {
     this.tiltEngine = null;
     this.isOpen = false;
     this.currentMember = null;
+    this.enterTimer = null;
+    this.leaveRaf = null;
 
     // Team member data
     this.teamData = {
       'mohamed': {
         name: 'Mohamed Khalifa Al Sada',
         title: 'Chairman & Founding Partner',
+        handle: 'mohamed.alsada',
+        status: 'Doha, Qatar',
         avatar: '/assets/team/mohamed.jpg',
-        bio: 'Visionary leader with deep roots in Qatar\'s business landscape. Mohamed brings strategic insight and regional expertise to every project, driving Hexagon\'s mission to create meaningful connections.',
-        stats: [
-          { label: 'Years Experience', value: '15+' },
-          { label: 'Projects Led', value: '200+' },
-          { label: 'Team Size', value: '50+' }
-        ],
-        social: {
-          linkedin: 'https://linkedin.com/in/mohamed-alsada',
-          email: 'mohamed@hexagon.qa'
-        },
-        location: 'Doha, Qatar',
-        color: '#FF8106'
+        contactText: 'Contact',
+        email: 'mohamed@hexagon.qa'
       },
       'ali': {
         name: 'Ali Boray Dundar',
         title: 'Founding Partner',
+        handle: 'ali.dundar',
+        status: 'Istanbul, Turkey',
         avatar: '/assets/team/ali.jpg',
-        bio: 'Creative strategist with a passion for innovative brand experiences. Ali combines artistic vision with business acumen to deliver campaigns that resonate and inspire.',
-        stats: [
-          { label: 'Years Experience', value: '12+' },
-          { label: 'Brands Served', value: '150+' },
-          { label: 'Awards Won', value: '25+' }
-        ],
-        social: {
-          linkedin: 'https://linkedin.com/in/ali-dundar',
-          email: 'ali@hexagon.qa'
-        },
-        location: 'Istanbul, Turkey',
-        color: '#FF6B35'
+        contactText: 'Contact',
+        email: 'ali@hexagon.qa'
       },
       'markus': {
         name: 'Markus Katterle',
         title: 'Founding Partner',
+        handle: 'markus.katterle',
+        status: 'London, UK',
         avatar: '/assets/team/markus.jpg',
-        bio: 'International business developer with expertise in cross-cultural communication. Markus bridges markets and builds partnerships that drive growth across borders.',
-        stats: [
-          { label: 'Years Experience', value: '18+' },
-          { label: 'Markets Entered', value: '30+' },
-          { label: 'Partnerships', value: '100+' }
-        ],
-        social: {
-          linkedin: 'https://linkedin.com/in/markus-katterle',
-          email: 'markus@hexagon.qa'
-        },
-        location: 'London, UK',
-        color: '#FFB366'
+        contactText: 'Contact',
+        email: 'markus@hexagon.qa'
       },
       'alihan': {
         name: 'Alihan Tokmak',
         title: 'Managing Partner',
+        handle: 'alihan.tokmak',
+        status: 'Doha, Qatar',
         avatar: '/assets/team/alihan.jpg',
-        bio: 'Operations expert who transforms vision into reality. Alihan ensures flawless execution of every project, managing complex logistics with precision and creativity.',
-        stats: [
-          { label: 'Years Experience', value: '10+' },
-          { label: 'Events Managed', value: '500+' },
-          { label: 'Team Members', value: '40+' }
-        ],
-        social: {
-          linkedin: 'https://linkedin.com/in/alihan-tokmak',
-          email: 'alihan@hexagon.qa'
-        },
-        location: 'Doha, Qatar',
-        color: '#FF9933'
+        contactText: 'Contact',
+        email: 'alihan@hexagon.qa'
       },
       'gulsah': {
         name: 'Gulsah Uzun',
         title: 'Events Business Director',
+        handle: 'gulsah.uzun',
+        status: 'Doha, Qatar',
         avatar: '/assets/team/gulsah.jpg',
-        bio: 'Event specialist with an eye for unforgettable experiences. Gulsah crafts immersive events that captivate audiences and leave lasting impressions.',
-        stats: [
-          { label: 'Years Experience', value: '8+' },
-          { label: 'Events Produced', value: '300+' },
-          { label: 'Happy Clients', value: '200+' }
-        ],
-        social: {
-          linkedin: 'https://linkedin.com/in/gulsah-uzun',
-          email: 'gulsah@hexagon.qa'
-        },
-        location: 'Doha, Qatar',
-        color: '#FFAA55'
+        contactText: 'Contact',
+        email: 'gulsah@hexagon.qa'
       }
     };
 
@@ -107,76 +199,52 @@ export class HolographicCard {
   }
 
   createModal() {
-    // Create modal HTML structure
     const modalHTML = `
-      <div class="holo-modal" id="holo-modal">
-        <div class="holo-backdrop"></div>
-        <div class="holo-shell">
-          <div class="holo-wrap">
-            <!-- Behind glow -->
-            <div class="holo-glow"></div>
+      <div class="pc-modal" id="pc-modal">
+        <div class="pc-modal-backdrop"></div>
+        <div class="pc-modal-container">
+          <button class="pc-modal-close" aria-label="Close">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 6L6 18M6 6l12 12"/>
+            </svg>
+          </button>
 
-            <!-- Main card -->
-            <div class="holo-card">
-              <!-- Inside layer (background) -->
-              <div class="holo-inside"></div>
+          <div class="pc-card-wrapper">
+            <div class="pc-behind"></div>
+            <div class="pc-card-shell">
+              <section class="pc-card">
+                <div class="pc-inside">
+                  <div class="pc-shine"></div>
+                  <div class="pc-glare"></div>
 
-              <!-- Content -->
-              <div class="holo-content">
-                <button class="holo-close" aria-label="Close">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M18 6L6 18M6 6l12 12"/>
-                  </svg>
-                </button>
+                  <!-- Avatar content layer -->
+                  <div class="pc-content pc-avatar-content">
+                    <img class="pc-avatar" src="" alt="" loading="lazy">
 
-                <div class="holo-avatar-wrap">
-                  <div class="holo-avatar">
-                    <img src="" alt="" class="holo-avatar-img">
+                    <!-- User info bar at bottom -->
+                    <div class="pc-user-info">
+                      <div class="pc-user-details">
+                        <div class="pc-mini-avatar">
+                          <img src="" alt="">
+                        </div>
+                        <div class="pc-user-text">
+                          <div class="pc-handle"></div>
+                          <div class="pc-status"></div>
+                        </div>
+                      </div>
+                      <button class="pc-contact-btn">Contact</button>
+                    </div>
                   </div>
-                  <div class="holo-avatar-ring"></div>
+
+                  <!-- Name/Title layer -->
+                  <div class="pc-content">
+                    <div class="pc-details">
+                      <h3 class="pc-name"></h3>
+                      <p class="pc-title"></p>
+                    </div>
+                  </div>
                 </div>
-
-                <div class="holo-info">
-                  <h2 class="holo-name"></h2>
-                  <p class="holo-title"></p>
-                  <p class="holo-location">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
-                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-                      <circle cx="12" cy="10" r="3"/>
-                    </svg>
-                    <span></span>
-                  </p>
-                </div>
-
-                <p class="holo-bio"></p>
-
-                <div class="holo-stats"></div>
-
-                <div class="holo-actions">
-                  <a href="#" class="holo-btn holo-btn-linkedin">
-                    <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
-                      <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
-                    </svg>
-                    LinkedIn
-                  </a>
-                  <a href="#" class="holo-btn holo-btn-email">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
-                      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-                      <polyline points="22,6 12,13 2,6"/>
-                    </svg>
-                    Contact
-                  </a>
-                </div>
-              </div>
-
-              <!-- Holographic shine layer -->
-              <div class="holo-shine"></div>
-
-              <!-- Glare effect -->
-              <div class="holo-glare"></div>
-
-              <!-- Grain texture -->
-              <div class="holo-grain"></div>
+              </section>
             </div>
           </div>
         </div>
@@ -184,12 +252,11 @@ export class HolographicCard {
     `;
 
     document.body.insertAdjacentHTML('beforeend', modalHTML);
-    this.modal = document.getElementById('holo-modal');
+    this.modal = document.getElementById('pc-modal');
   }
 
   bindTeamMemberClicks() {
     const teamMembers = document.querySelectorAll('.team-member-flip');
-
     const memberKeys = ['mohamed', 'ali', 'markus', 'alihan', 'gulsah'];
 
     teamMembers.forEach((member, index) => {
@@ -197,7 +264,6 @@ export class HolographicCard {
       if (key) {
         member.dataset.member = key;
         member.style.cursor = 'pointer';
-
         member.addEventListener('click', (e) => {
           e.preventDefault();
           e.stopPropagation();
@@ -208,8 +274,8 @@ export class HolographicCard {
   }
 
   bindModalEvents() {
-    const backdrop = this.modal.querySelector('.holo-backdrop');
-    const closeBtn = this.modal.querySelector('.holo-close');
+    const backdrop = this.modal.querySelector('.pc-modal-backdrop');
+    const closeBtn = this.modal.querySelector('.pc-modal-close');
 
     backdrop.addEventListener('click', () => this.close());
     closeBtn.addEventListener('click', () => this.close());
@@ -234,10 +300,7 @@ export class HolographicCard {
 
     // Initialize tilt engine after modal is visible
     requestAnimationFrame(() => {
-      const shell = this.modal.querySelector('.holo-shell');
-      const wrap = this.modal.querySelector('.holo-wrap');
-      this.tiltEngine = new TiltEngine(shell, wrap);
-      this.tiltEngine.start();
+      this.initTiltEngine();
     });
   }
 
@@ -246,236 +309,119 @@ export class HolographicCard {
     document.body.style.overflow = '';
     this.isOpen = false;
 
+    // Cleanup
     if (this.tiltEngine) {
       this.tiltEngine.destroy();
       this.tiltEngine = null;
+    }
+    if (this.enterTimer) {
+      clearTimeout(this.enterTimer);
+      this.enterTimer = null;
+    }
+    if (this.leaveRaf) {
+      cancelAnimationFrame(this.leaveRaf);
+      this.leaveRaf = null;
+    }
+
+    const shell = this.modal.querySelector('.pc-card-shell');
+    if (shell) {
+      shell.classList.remove('active', 'entering');
     }
 
     this.currentMember = null;
   }
 
   populateCard(data) {
-    // Avatar with fallback
-    const avatarImg = this.modal.querySelector('.holo-avatar-img');
-    avatarImg.src = data.avatar;
-    avatarImg.alt = data.name;
-    avatarImg.onerror = () => {
-      avatarImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name)}&size=400&background=FF8106&color=fff&bold=true`;
+    const fallbackAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name)}&size=800&background=FF8106&color=fff&bold=true`;
+
+    // Main avatar
+    const avatar = this.modal.querySelector('.pc-avatar');
+    avatar.src = data.avatar;
+    avatar.alt = data.name;
+    avatar.onerror = () => { avatar.src = fallbackAvatar; };
+
+    // Mini avatar
+    const miniAvatar = this.modal.querySelector('.pc-mini-avatar img');
+    miniAvatar.src = data.avatar;
+    miniAvatar.alt = data.name;
+    miniAvatar.onerror = () => { miniAvatar.src = fallbackAvatar; };
+
+    // Details
+    this.modal.querySelector('.pc-name').textContent = data.name;
+    this.modal.querySelector('.pc-title').textContent = data.title;
+    this.modal.querySelector('.pc-handle').textContent = `@${data.handle}`;
+    this.modal.querySelector('.pc-status').textContent = data.status;
+
+    // Contact button
+    const contactBtn = this.modal.querySelector('.pc-contact-btn');
+    contactBtn.textContent = data.contactText;
+    contactBtn.onclick = () => {
+      window.location.href = `mailto:${data.email}`;
+    };
+  }
+
+  initTiltEngine() {
+    const shell = this.modal.querySelector('.pc-card-shell');
+    const wrap = this.modal.querySelector('.pc-card-wrapper');
+
+    if (!shell || !wrap) return;
+
+    this.tiltEngine = new TiltEngine(shell, wrap);
+
+    // Event handlers
+    const handlePointerMove = (e) => {
+      const rect = shell.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      this.tiltEngine.setTarget(x, y);
     };
 
-    // Basic info
-    this.modal.querySelector('.holo-name').textContent = data.name;
-    this.modal.querySelector('.holo-title').textContent = data.title;
-    this.modal.querySelector('.holo-location span').textContent = data.location;
-    this.modal.querySelector('.holo-bio').textContent = data.bio;
+    const handlePointerEnter = (e) => {
+      shell.classList.add('active');
+      shell.classList.add('entering');
 
-    // Stats
-    const statsContainer = this.modal.querySelector('.holo-stats');
-    statsContainer.innerHTML = data.stats.map(stat => `
-      <div class="holo-stat">
-        <span class="holo-stat-value">${stat.value}</span>
-        <span class="holo-stat-label">${stat.label}</span>
-      </div>
-    `).join('');
+      if (this.enterTimer) clearTimeout(this.enterTimer);
+      this.enterTimer = setTimeout(() => {
+        shell.classList.remove('entering');
+      }, ANIMATION_CONFIG.ENTER_TRANSITION_MS);
 
-    // Social links
-    const linkedinBtn = this.modal.querySelector('.holo-btn-linkedin');
-    const emailBtn = this.modal.querySelector('.holo-btn-email');
+      const rect = shell.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      this.tiltEngine.setTarget(x, y);
+    };
 
-    linkedinBtn.href = data.social.linkedin;
-    linkedinBtn.target = '_blank';
-    linkedinBtn.rel = 'noopener noreferrer';
+    const handlePointerLeave = () => {
+      this.tiltEngine.toCenter();
 
-    emailBtn.href = `mailto:${data.social.email}`;
+      const checkSettle = () => {
+        const { x, y, tx, ty } = this.tiltEngine.getCurrent();
+        const settled = Math.hypot(tx - x, ty - y) < 0.6;
+        if (settled) {
+          shell.classList.remove('active');
+          this.leaveRaf = null;
+        } else {
+          this.leaveRaf = requestAnimationFrame(checkSettle);
+        }
+      };
 
-    // Set accent color
-    const wrap = this.modal.querySelector('.holo-wrap');
-    wrap.style.setProperty('--accent-color', data.color);
-  }
-}
+      if (this.leaveRaf) cancelAnimationFrame(this.leaveRaf);
+      this.leaveRaf = requestAnimationFrame(checkSettle);
+    };
 
+    shell.addEventListener('pointerenter', handlePointerEnter);
+    shell.addEventListener('pointermove', handlePointerMove);
+    shell.addEventListener('pointerleave', handlePointerLeave);
 
-// TiltEngine - Handles 3D tilt and holographic effects
-class TiltEngine {
-  constructor(shell, wrap) {
-    this.shell = shell;
-    this.wrap = wrap;
-    this.card = wrap.querySelector('.holo-card');
+    // Store handlers for cleanup
+    shell._holoHandlers = { handlePointerEnter, handlePointerMove, handlePointerLeave };
 
-    this.running = false;
-    this.rafId = null;
-    this.lastTime = 0;
-
-    // Position state
-    this.currentX = 0;
-    this.currentY = 0;
-    this.targetX = 0;
-    this.targetY = 0;
-
-    // Smoothing parameters
-    this.tau = 0.14; // Exponential smoothing factor
-
-    // Bounds
-    this.bounds = null;
-
-    // Animation state
-    this.isHovering = false;
-    this.hasEnteredOnce = false;
-
-    this.bindEvents();
-  }
-
-  bindEvents() {
-    this.handleMouseMove = this.onMouseMove.bind(this);
-    this.handleMouseEnter = this.onMouseEnter.bind(this);
-    this.handleMouseLeave = this.onMouseLeave.bind(this);
-    this.handleResize = this.onResize.bind(this);
-
-    this.shell.addEventListener('mousemove', this.handleMouseMove);
-    this.shell.addEventListener('mouseenter', this.handleMouseEnter);
-    this.shell.addEventListener('mouseleave', this.handleMouseLeave);
-    window.addEventListener('resize', this.handleResize);
-
-    this.updateBounds();
-  }
-
-  updateBounds() {
-    this.bounds = this.shell.getBoundingClientRect();
-  }
-
-  onResize() {
-    this.updateBounds();
-  }
-
-  onMouseEnter(e) {
-    this.isHovering = true;
-    this.updateBounds();
-
-    if (!this.hasEnteredOnce) {
-      // First entry - animate from corner
-      this.hasEnteredOnce = true;
-      this.currentX = 0;
-      this.currentY = 0;
-    }
-
-    this.wrap.classList.add('hovering');
-  }
-
-  onMouseLeave() {
-    this.isHovering = false;
-    this.wrap.classList.remove('hovering');
-
-    // Return to center
-    this.targetX = this.bounds.width / 2;
-    this.targetY = this.bounds.height / 2;
-  }
-
-  onMouseMove(e) {
-    if (!this.bounds) return;
-
-    const x = e.clientX - this.bounds.left;
-    const y = e.clientY - this.bounds.top;
-
-    this.targetX = Math.max(0, Math.min(this.bounds.width, x));
-    this.targetY = Math.max(0, Math.min(this.bounds.height, y));
-  }
-
-  start() {
-    if (this.running) return;
-    this.running = true;
-    this.lastTime = performance.now();
-
-    // Initialize to center
-    if (this.bounds) {
-      this.currentX = this.bounds.width / 2;
-      this.currentY = this.bounds.height / 2;
-      this.targetX = this.bounds.width / 2;
-      this.targetY = this.bounds.height / 2;
-    }
-
-    this.step();
-  }
-
-  step() {
-    if (!this.running) return;
-
-    const now = performance.now();
-    const deltaTime = (now - this.lastTime) / 1000;
-    this.lastTime = now;
-
-    // Exponential smoothing
-    const k = 1 - Math.exp(-deltaTime / this.tau);
-    this.currentX += (this.targetX - this.currentX) * k;
-    this.currentY += (this.targetY - this.currentY) * k;
-
-    this.updateCSSVariables();
-
-    this.rafId = requestAnimationFrame(() => this.step());
-  }
-
-  updateCSSVariables() {
-    if (!this.bounds || !this.wrap) return;
-
-    const width = this.bounds.width;
-    const height = this.bounds.height;
-
-    if (width === 0 || height === 0) return;
-
-    // Calculate percentages
-    const percentX = (100 / width) * this.currentX;
-    const percentY = (100 / height) * this.currentY;
-
-    // Center offset (-50 to 50)
-    const centerX = percentX - 50;
-    const centerY = percentY - 50;
-
-    // Distance from center (0 to ~70 at corners)
-    const distanceFromCenter = Math.hypot(centerX, centerY) / 50;
-
-    // Rotation values
-    const rotateX = -(centerY / 4); // Vertical tilt
-    const rotateY = centerX / 5;    // Horizontal tilt
-
-    // Background parallax positions
-    const bgX = 35 + ((65 - 35) * percentX / 100);
-    const bgY = 35 + ((65 - 35) * percentY / 100);
-
-    // Apply CSS variables
-    this.wrap.style.setProperty('--pointer-x', `${percentX}%`);
-    this.wrap.style.setProperty('--pointer-y', `${percentY}%`);
-    this.wrap.style.setProperty('--rotate-x', `${rotateY}deg`);
-    this.wrap.style.setProperty('--rotate-y', `${rotateX}deg`);
-    this.wrap.style.setProperty('--pointer-from-center', distanceFromCenter.toFixed(3));
-    this.wrap.style.setProperty('--background-x', `${bgX}%`);
-    this.wrap.style.setProperty('--background-y', `${bgY}%`);
-    this.wrap.style.setProperty('--center-x', centerX.toFixed(2));
-    this.wrap.style.setProperty('--center-y', centerY.toFixed(2));
-  }
-
-  destroy() {
-    this.running = false;
-
-    if (this.rafId) {
-      cancelAnimationFrame(this.rafId);
-      this.rafId = null;
-    }
-
-    this.shell.removeEventListener('mousemove', this.handleMouseMove);
-    this.shell.removeEventListener('mouseenter', this.handleMouseEnter);
-    this.shell.removeEventListener('mouseleave', this.handleMouseLeave);
-    window.removeEventListener('resize', this.handleResize);
-
-    // Reset CSS variables
-    if (this.wrap) {
-      this.wrap.style.removeProperty('--pointer-x');
-      this.wrap.style.removeProperty('--pointer-y');
-      this.wrap.style.removeProperty('--rotate-x');
-      this.wrap.style.removeProperty('--rotate-y');
-      this.wrap.style.removeProperty('--pointer-from-center');
-      this.wrap.style.removeProperty('--background-x');
-      this.wrap.style.removeProperty('--background-y');
-      this.wrap.classList.remove('hovering');
-    }
+    // Initial animation - start from corner, move to center
+    const initialX = (shell.clientWidth || 300) - ANIMATION_CONFIG.INITIAL_X_OFFSET;
+    const initialY = ANIMATION_CONFIG.INITIAL_Y_OFFSET;
+    this.tiltEngine.setImmediate(initialX, initialY);
+    this.tiltEngine.toCenter();
+    this.tiltEngine.beginInitial(ANIMATION_CONFIG.INITIAL_DURATION);
   }
 }
 
