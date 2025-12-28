@@ -10,6 +10,7 @@ import { ScrollToPlugin } from 'gsap/ScrollToPlugin'
 import { TracingBeam } from './TracingBeam.js'
 import { HexagonGlobe } from './Globe.js'
 import { EventModal } from './EventModal.js'
+import { HolographicCard } from './HolographicCard.js'
 
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
@@ -633,6 +634,14 @@ function playNeonAnimation() {
       tracingBeam.reveal();
     }
   }, null, 5.5);
+
+  // Phase 5: Show scroll indicator after shuffle animation completes
+  tl.call(() => {
+    const scrollIndicator = document.getElementById('scroll-indicator');
+    if (scrollIndicator) {
+      scrollIndicator.classList.remove('hidden');
+    }
+  }, null, 6.0);
 }
 
 // Shuffle text animation state
@@ -1772,4 +1781,117 @@ if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initEventModal);
 } else {
   initEventModal();
+}
+
+// ========================================
+// HOLOGRAPHIC PROFILE CARD
+// ========================================
+
+let holographicCard = null;
+
+function initHolographicCard() {
+  holographicCard = new HolographicCard();
+}
+
+// Initialize holographic card when DOM ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initHolographicCard);
+} else {
+  initHolographicCard();
+}
+
+// ========================================
+// SCROLL TO EXPLORE INDICATOR
+// ========================================
+
+function initScrollIndicator() {
+  const scrollIndicator = document.getElementById('scroll-indicator');
+  if (!scrollIndicator) return;
+
+  let scrollTimeout = null;
+  let isInForbiddenZone = false; // Footer or Contact section
+  const IDLE_DELAY = 3000; // 3 seconds of no scrolling
+
+  // Function to show indicator if not in forbidden zone
+  function showIndicator() {
+    if (!isInForbiddenZone) {
+      scrollIndicator.classList.remove('hidden');
+    }
+  }
+
+  // Function to hide and start idle timer
+  function hideAndStartTimer() {
+    scrollIndicator.classList.add('hidden');
+
+    // Clear existing timeout
+    if (scrollTimeout) {
+      clearTimeout(scrollTimeout);
+    }
+
+    // Start new timeout to show indicator after idle period
+    scrollTimeout = setTimeout(() => {
+      showIndicator();
+    }, IDLE_DELAY);
+  }
+
+  // Listen for scroll events - works on ALL sections
+  window.addEventListener('scroll', () => {
+    if (!isInForbiddenZone) {
+      hideAndStartTimer();
+    }
+  }, { passive: true });
+
+  // Hide in Contact section (section 6)
+  ScrollTrigger.create({
+    trigger: '#contact',
+    start: 'top 80%',
+    end: 'bottom top',
+    onEnter: () => {
+      isInForbiddenZone = true;
+      scrollIndicator.classList.add('hidden');
+      if (scrollTimeout) {
+        clearTimeout(scrollTimeout);
+        scrollTimeout = null;
+      }
+    },
+    onLeaveBack: () => {
+      isInForbiddenZone = false;
+      hideAndStartTimer();
+    }
+  });
+
+  // Hide in Footer section
+  ScrollTrigger.create({
+    trigger: '#footer',
+    start: 'top bottom',
+    onEnter: () => {
+      isInForbiddenZone = true;
+      scrollIndicator.classList.add('hidden');
+      if (scrollTimeout) {
+        clearTimeout(scrollTimeout);
+        scrollTimeout = null;
+      }
+    },
+    onLeaveBack: () => {
+      // Check if we're back before contact section
+      const contactSection = document.getElementById('contact');
+      if (contactSection) {
+        const contactTop = contactSection.getBoundingClientRect().top;
+        if (contactTop > window.innerHeight * 0.8) {
+          isInForbiddenZone = false;
+          hideAndStartTimer();
+        }
+      } else {
+        isInForbiddenZone = false;
+        hideAndStartTimer();
+      }
+    }
+  });
+}
+
+// Initialize scroll indicator when DOM ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initScrollIndicator);
+} else {
+  initScrollIndicator();
 }

@@ -46,6 +46,60 @@ body {
   scrollbar-color: var(--primary) var(--bg);
 }
 
+/* ===== Scroll to Explore Indicator ===== */
+.scroll-indicator {
+  position: fixed;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  z-index: 100;
+  opacity: 1;
+  transition: opacity 0.5s ease, transform 0.5s ease;
+  pointer-events: none;
+}
+
+.scroll-indicator.hidden {
+  opacity: 0;
+  transform: translateX(-50%) translateY(20px);
+}
+
+.scroll-mouse {
+  width: 26px;
+  height: 42px;
+  border: 2px solid var(--primary);
+  border-radius: 15px;
+  position: relative;
+  box-shadow: 0 0 15px var(--primary-glow), inset 0 0 10px rgba(255, 129, 6, 0.1);
+}
+
+.scroll-wheel {
+  width: 4px;
+  height: 8px;
+  background: var(--primary);
+  border-radius: 2px;
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  animation: scrollWheel 1.5s ease-in-out infinite;
+  box-shadow: 0 0 10px var(--primary-glow);
+}
+
+@keyframes scrollWheel {
+  0%, 100% {
+    opacity: 1;
+    top: 8px;
+  }
+  50% {
+    opacity: 0.3;
+    top: 20px;
+  }
+}
+
 #app {
   position: fixed;
   top: 0;
@@ -2790,5 +2844,636 @@ p {
   /* Hide 3D model on mobile for performance */
   .model-viewer-container {
     display: none;
+  }
+}
+
+/* ========================================
+   HOLOGRAPHIC PROFILE CARD MODAL
+   ======================================== */
+
+/* Sunpillar color variables */
+:root {
+  --sunpillar-1: hsl(2, 100%, 73%);
+  --sunpillar-2: hsl(53, 100%, 69%);
+  --sunpillar-3: hsl(93, 100%, 69%);
+  --sunpillar-4: hsl(176, 100%, 76%);
+  --sunpillar-5: hsl(228, 100%, 74%);
+  --sunpillar-6: hsl(283, 100%, 73%);
+  --holo-grain: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+}
+
+/* Modal container */
+.holo-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.4s ease, visibility 0.4s ease;
+}
+
+.holo-modal.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Backdrop */
+.holo-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(10px);
+}
+
+/* Shell - contains the entire card system */
+.holo-shell {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  padding: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Wrap - handles 3D transforms and CSS variables */
+.holo-wrap {
+  --pointer-x: 50%;
+  --pointer-y: 50%;
+  --rotate-x: 0deg;
+  --rotate-y: 0deg;
+  --pointer-from-center: 0;
+  --background-x: 50%;
+  --background-y: 50%;
+  --center-x: 0;
+  --center-y: 0;
+  --accent-color: #FF8106;
+
+  position: relative;
+  width: 100%;
+  perspective: 1000px;
+  transform-style: preserve-3d;
+}
+
+/* Behind glow */
+.holo-glow {
+  position: absolute;
+  inset: -50px;
+  background: radial-gradient(
+    ellipse at var(--pointer-x) var(--pointer-y),
+    rgba(255, 129, 6, 0.4) 0%,
+    rgba(255, 129, 6, 0.15) 40%,
+    transparent 70%
+  );
+  filter: blur(50px);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.holo-wrap.hovering .holo-glow {
+  opacity: 1;
+}
+
+/* Main card */
+.holo-card {
+  position: relative;
+  width: 100%;
+  border-radius: 24px;
+  overflow: hidden;
+  transform: translateZ(0) rotateX(var(--rotate-y)) rotateY(var(--rotate-x));
+  transform-style: preserve-3d;
+  transition: transform 0.15s ease-out;
+  box-shadow:
+    0 0 0 1px rgba(255, 129, 6, 0.2),
+    0 25px 50px -12px rgba(0, 0, 0, 0.5),
+    0 0 80px -20px rgba(255, 129, 6, 0.3);
+}
+
+.holo-modal.active .holo-card {
+  animation: holo-card-enter 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes holo-card-enter {
+  0% {
+    opacity: 0;
+    transform: translateZ(-100px) rotateX(15deg) rotateY(-15deg) scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: translateZ(0) rotateX(var(--rotate-y)) rotateY(var(--rotate-x)) scale(1);
+  }
+}
+
+/* Inside layer - base gradient background */
+.holo-inside {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    #0a0a0a 0%,
+    #1a1208 30%,
+    #0d0d0d 50%,
+    #1a1208 70%,
+    #0a0a0a 100%
+  );
+  z-index: 1;
+}
+
+/* Content layer */
+.holo-content {
+  position: relative;
+  z-index: 10;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+/* Close button */
+.holo-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.7);
+  transition: all 0.3s ease;
+  z-index: 20;
+}
+
+.holo-close:hover {
+  background: rgba(255, 129, 6, 0.3);
+  color: #fff;
+  transform: rotate(90deg);
+}
+
+.holo-close svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Avatar */
+.holo-avatar-wrap {
+  position: relative;
+  width: 140px;
+  height: 140px;
+}
+
+.holo-avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid rgba(255, 129, 6, 0.5);
+  box-shadow: 0 0 30px rgba(255, 129, 6, 0.3);
+}
+
+.holo-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.holo-avatar-ring {
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  background: linear-gradient(135deg, var(--sunpillar-1), var(--sunpillar-3), var(--sunpillar-5)) border-box;
+  -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: ring-rotate 4s linear infinite;
+}
+
+@keyframes ring-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Info section */
+.holo-info {
+  text-align: center;
+}
+
+.holo-name {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 6px 0;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.holo-title {
+  font-size: 1rem;
+  color: var(--accent-color);
+  margin: 0 0 8px 0;
+  font-weight: 500;
+}
+
+.holo-location {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0;
+}
+
+.holo-location svg {
+  opacity: 0.7;
+}
+
+/* Bio */
+.holo-bio {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.75);
+  text-align: center;
+  margin: 0;
+  max-width: 320px;
+}
+
+/* Stats */
+.holo-stats {
+  display: flex;
+  gap: 24px;
+  padding: 16px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  width: 100%;
+  justify-content: center;
+}
+
+.holo-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.holo-stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--accent-color);
+  text-shadow: 0 0 20px rgba(255, 129, 6, 0.5);
+}
+
+.holo-stat-label {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Action buttons */
+.holo-actions {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+}
+
+.holo-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.holo-btn-linkedin {
+  background: linear-gradient(135deg, #0077b5 0%, #005885 100%);
+  color: #fff;
+}
+
+.holo-btn-linkedin:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 119, 181, 0.4);
+}
+
+.holo-btn-email {
+  background: linear-gradient(135deg, rgba(255, 129, 6, 0.2) 0%, rgba(255, 129, 6, 0.1) 100%);
+  color: var(--accent-color);
+  border: 1px solid rgba(255, 129, 6, 0.3);
+}
+
+.holo-btn-email:hover {
+  background: linear-gradient(135deg, rgba(255, 129, 6, 0.3) 0%, rgba(255, 129, 6, 0.2) 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(255, 129, 6, 0.2);
+}
+
+/* ========================================
+   HOLOGRAPHIC SHINE LAYER (CRITICAL)
+   ======================================== */
+
+.holo-shine {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  border-radius: 24px;
+  overflow: hidden;
+
+  /* Hexagon logo mask */
+  -webkit-mask-image: url('/assets/SVG/hexagon-logo.svg');
+  mask-image: url('/assets/SVG/hexagon-logo.svg');
+  -webkit-mask-size: 180%;
+  mask-size: 180%;
+  -webkit-mask-position: top calc(250% - (var(--background-y) * 6)) left calc(120% - var(--background-x));
+  mask-position: top calc(250% - (var(--background-y) * 6)) left calc(120% - var(--background-x));
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+
+  /* Multi-layer holographic background */
+  background-image:
+    /* Layer 1: Rainbow sunpillar stripes */
+    repeating-linear-gradient(
+      0deg,
+      var(--sunpillar-1) calc(5% * 1),
+      var(--sunpillar-2) calc(5% * 2),
+      var(--sunpillar-3) calc(5% * 3),
+      var(--sunpillar-4) calc(5% * 4),
+      var(--sunpillar-5) calc(5% * 5),
+      var(--sunpillar-6) calc(5% * 6),
+      var(--sunpillar-1) calc(5% * 7)
+    ),
+    /* Layer 2: Diagonal metallic lines */
+    repeating-linear-gradient(
+      133deg,
+      #0e152e 0%,
+      hsl(180, 10%, 60%) 3.8%,
+      hsl(180, 29%, 66%) 4.5%,
+      hsl(180, 10%, 60%) 5.2%,
+      #0e152e 10%,
+      #0e152e 12%
+    ),
+    /* Layer 3: Shadow/lighting gradient */
+    radial-gradient(
+      farthest-corner circle at var(--pointer-x) var(--pointer-y),
+      hsla(0, 0%, 0%, 0.1) 12%,
+      hsla(0, 0%, 0%, 0.15) 20%,
+      hsla(0, 0%, 0%, 0.25) 120%
+    );
+
+  background-blend-mode: color, hard-light, normal;
+
+  background-position:
+    0% var(--background-y),
+    var(--background-x) var(--background-y),
+    center center;
+
+  background-size:
+    500% 500%,
+    300% 300%,
+    200% 200%;
+
+  mix-blend-mode: color-dodge;
+  filter: brightness(0.7) contrast(1.4) saturate(0.5);
+
+  animation: holo-bg 20s linear infinite;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.holo-wrap.hovering .holo-shine {
+  opacity: 1;
+}
+
+/* Shine before pseudo-element - grain + gradient */
+.holo-shine::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 24px;
+
+  background-image:
+    /* Rainbow gradient following pointer */
+    linear-gradient(
+      115deg,
+      transparent 20%,
+      var(--sunpillar-4) 36%,
+      var(--sunpillar-5) 43%,
+      var(--sunpillar-6) 50%,
+      var(--sunpillar-1) 57%,
+      var(--sunpillar-2) 64%,
+      var(--sunpillar-3) 71%,
+      transparent 80%
+    ),
+    /* Radial light spot */
+    radial-gradient(
+      farthest-corner circle at var(--pointer-x) var(--pointer-y),
+      hsl(0, 0%, 80%) 0%,
+      hsla(0, 0%, 50%, 0.3) 45%,
+      hsla(0, 0%, 20%, 0.1) 90%
+    ),
+    /* Grain texture */
+    var(--holo-grain);
+
+  background-size:
+    300% 300%,
+    100% 100%,
+    180px 180px;
+
+  background-position:
+    var(--background-x) var(--background-y),
+    center,
+    calc(var(--pointer-x) * 0.05) calc(var(--pointer-y) * 0.05);
+
+  background-blend-mode: overlay, overlay, multiply;
+  mix-blend-mode: luminosity;
+
+  filter: brightness(calc(1.5 - var(--pointer-from-center) * 0.3))
+          contrast(calc(1.5 + var(--pointer-from-center) * 0.5));
+
+  opacity: 0.8;
+}
+
+@keyframes holo-bg {
+  0% {
+    background-position:
+      0% var(--background-y),
+      0% 0%,
+      center center;
+  }
+  50% {
+    background-position:
+      0% var(--background-y),
+      100% 100%,
+      center center;
+  }
+  100% {
+    background-position:
+      0% var(--background-y),
+      0% 0%,
+      center center;
+  }
+}
+
+/* ========================================
+   GLARE EFFECT
+   ======================================== */
+
+.holo-glare {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  pointer-events: none;
+  border-radius: 24px;
+
+  background-image: radial-gradient(
+    farthest-corner circle at var(--pointer-x) var(--pointer-y),
+    hsla(40, 100%, 90%, 0.35) 0%,
+    hsla(40, 80%, 70%, 0.2) 20%,
+    hsla(207, 40%, 50%, 0.1) 50%,
+    transparent 80%
+  );
+
+  mix-blend-mode: overlay;
+  filter: brightness(0.9) contrast(1.1);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.holo-wrap.hovering .holo-glare {
+  opacity: 1;
+}
+
+/* ========================================
+   GRAIN TEXTURE OVERLAY
+   ======================================== */
+
+.holo-grain {
+  position: absolute;
+  inset: 0;
+  z-index: 7;
+  pointer-events: none;
+  border-radius: 24px;
+
+  background-image: var(--holo-grain);
+  background-size: 150px 150px;
+  background-position: calc(var(--pointer-x) * 0.02) calc(var(--pointer-y) * 0.02);
+
+  mix-blend-mode: overlay;
+  opacity: 0.15;
+}
+
+/* ========================================
+   TEAM MEMBER HOVER EFFECT
+   ======================================== */
+
+.team-member-flip {
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.team-member-flip::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--sunpillar-1), var(--sunpillar-3), var(--sunpillar-5));
+  opacity: 0;
+  z-index: -1;
+  transition: opacity 0.3s ease;
+}
+
+.team-member-flip:hover {
+  transform: translateY(-2px);
+}
+
+.team-member-flip:hover::before {
+  opacity: 0.3;
+}
+
+.team-member-flip::after {
+  content: 'View Profile';
+  position: absolute;
+  bottom: -20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(5px);
+  font-size: 0.65rem;
+  color: var(--primary);
+  opacity: 0;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.team-member-flip:hover::after {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ========================================
+   RESPONSIVE STYLES
+   ======================================== */
+
+@media (max-width: 480px) {
+  .holo-shell {
+    padding: 20px;
+    max-width: 100%;
+  }
+
+  .holo-content {
+    padding: 24px 20px;
+    gap: 16px;
+  }
+
+  .holo-avatar-wrap {
+    width: 100px;
+    height: 100px;
+  }
+
+  .holo-name {
+    font-size: 1.4rem;
+  }
+
+  .holo-title {
+    font-size: 0.9rem;
+  }
+
+  .holo-bio {
+    font-size: 0.85rem;
+  }
+
+  .holo-stats {
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .holo-stat-value {
+    font-size: 1.25rem;
+  }
+
+  .holo-actions {
+    flex-direction: column;
+  }
+
+  .holo-btn {
+    padding: 14px 20px;
   }
 }
