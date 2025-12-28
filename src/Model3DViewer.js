@@ -7,7 +7,7 @@ import gsap from 'gsap';
 const CATEGORY_MODELS = {
   'live-sports': {
     path: '/assets/models/soccer_ball.glb',
-    scale: 2.5,
+    scale: 1.0,
     position: { x: 0, y: 0, z: 0 },
     rotation: { x: 0, y: 0, z: 0 },
     autoRotateSpeed: 0.5
