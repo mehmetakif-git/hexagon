@@ -135,8 +135,6 @@ export class EventModal {
     document.getElementById('close-event-modal')?.addEventListener('click', () => this.close());
     document.getElementById('event-back-btn')?.addEventListener('click', () => this.close());
 
-    // Backdrop click
-    this.modal?.querySelector('.event-modal-backdrop')?.addEventListener('click', () => this.close());
 
     // Escape key
     document.addEventListener('keydown', (e) => {
