@@ -2202,7 +2202,7 @@ p {
   background: rgba(20, 20, 30, 0.95);
   border: 1px solid rgba(255, 129, 6, 0.3);
   border-radius: 20px;
-  overflow: hidden;
+  overflow: visible; /* Allow 3D model fireworks to overflow */
   box-shadow:
     0 25px 50px rgba(0, 0, 0, 0.5),
     0 0 100px rgba(255, 68, 0, 0.1),
@@ -2302,7 +2302,7 @@ p {
   align-items: center;
   justify-content: center;
   padding: 2rem;
-  overflow: hidden;
+  overflow: visible; /* Allow 3D model to overflow */
   /* 3D perspective - centered */
   perspective: 1500px;
   perspective-origin: 50% 50%;
@@ -2317,7 +2317,7 @@ p {
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: visible;
+  overflow: hidden; /* Clip carousel items, model-viewer is outside this container */
 }
 
 .event-carousel-track {
@@ -2485,6 +2485,8 @@ p {
   border-top: 1px solid rgba(255, 129, 6, 0.15);
   position: relative;
   z-index: 1;
+  border-radius: 0 0 20px 20px; /* Maintain bottom border-radius */
+  overflow: hidden;
 }
 
 .event-modal-header {
@@ -2610,10 +2612,10 @@ p {
 
 .model-viewer-container {
   position: absolute;
-  bottom: 20px;
-  left: 20px;
-  width: 180px;
-  height: 180px;
+  bottom: 10px;
+  left: 10px;
+  width: 280px;
+  height: 280px;
   z-index: 15;
   /* FULLY TRANSPARENT - no background */
   background: transparent !important;
@@ -2624,6 +2626,21 @@ p {
   overflow: visible;
   cursor: grab;
   box-shadow: none !important;
+}
+
+/* Expanded container for fireworks animation */
+.model-viewer-container.expanded {
+  bottom: -160px;
+  left: -160px;
+  width: 600px;
+  height: 600px;
+  pointer-events: none;
+  cursor: default;
+}
+
+.model-viewer-container.expanded canvas {
+  cursor: default;
+  pointer-events: none;
 }
 
 .model-viewer-container:hover {
@@ -2644,6 +2661,8 @@ p {
   height: 100% !important;
   display: block;
   background: transparent !important;
+  pointer-events: auto; /* Re-enable interaction on canvas */
+  cursor: grab;
 }
 
 /* Glow effect - HIDDEN */
@@ -2683,11 +2702,12 @@ p {
     right: 15px;
   }
 
-  .model-viewer-container {
-    width: 150px;
-    height: 150px;
-    bottom: 15px;
-    left: 15px;
+  /* Expanded container only for fireworks */
+  .model-viewer-container.expanded {
+    width: 500px;
+    height: 500px;
+    bottom: -140px;
+    left: -140px;
   }
 }
 
@@ -2730,11 +2750,12 @@ p {
     right: 8px;
   }
 
-  .model-viewer-container {
-    width: 120px;
-    height: 120px;
-    bottom: 10px;
-    left: 10px;
+  /* Expanded container only for fireworks */
+  .model-viewer-container.expanded {
+    width: 400px;
+    height: 400px;
+    bottom: -110px;
+    left: -110px;
   }
 
   .model-viewer-container::after {

@@ -19,7 +19,8 @@
       "Bash(git -C e:/hexagon log --oneline -3)",
       "Bash(git -C e:/hexagon add:*)",
       "Bash(git -C e:/hexagon commit -m \"$\\(cat <<''EOF''\nEnhance Globe interaction and unify Contact Modal styling\n\n- Add city rotation with auto-rotate pause \\(rotateToCity method\\)\n- Fix globe rotation formula with calibration offset\n- Pause auto-rotate during mouse drag interaction\n- Add debug logging for city click events\n- Unify Contact Modal with hexagon-card design system\n- Add card edge indicator, gradient line, radial glow effects\n- Update form inputs with orange-themed styling\n- Add sweep animation to submit button\n- Add grid pattern to globe section background\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
-      "Bash(git -C e:/hexagon push)"
+      "Bash(git -C e:/hexagon push)",
+      "Bash(npm run build:*)"
     ]
   }
 }

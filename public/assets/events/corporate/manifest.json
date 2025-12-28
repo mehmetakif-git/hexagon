@@ -1,7 +1,7 @@
 {
   "category": "corporate",
   "items": [
-    { "file": "1.jpg", "type": "image", "title": "Porsche Cayenne Launch Event (2020)" },
-    { "file": "2.jpg", "type": "image", "title": "Qatar University Alumni Gathering (2018)" }
+    { "file": "1.webp", "type": "image", "title": "Porsche Cayenne Launch Event (2020)" },
+    { "file": "2.webp", "type": "image", "title": "Qatar University Alumni Gathering (2018)" }
   ]
 }

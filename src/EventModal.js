@@ -1,6 +1,8 @@
 // src/EventModal.js
 import gsap from 'gsap';
 import { Model3DViewer } from './Model3DViewer.js';
+import { CanvasFireworks } from './CanvasFireworks.js';
+import { FlyingDrone } from './FlyingDrone.js';
 
 // Kategori bilgileri
 const CATEGORIES = {
@@ -51,6 +53,12 @@ export class EventModal {
 
     // 3D Model Viewer
     this.modelViewer = null;
+
+    // Canvas Fireworks overlay (for public events)
+    this.fireworks = null;
+
+    // Flying Drone (for public events)
+    this.flyingDrone = null;
 
     this.init();
   }
@@ -213,8 +221,40 @@ export class EventModal {
         this.modelViewer.destroy();
         this.modelViewer = null;
       }
-      this.modelViewer = new Model3DViewer(modelContainer);
-      this.modelViewer.loadModel(category);
+
+      // Remove expanded class (no longer needed)
+      modelContainer.classList.remove('expanded');
+
+      // For public category, use canvas fireworks overlay instead of 3D model
+      if (category !== 'public') {
+        this.modelViewer = new Model3DViewer(modelContainer);
+        this.modelViewer.loadModel(category);
+      }
+    }
+
+    // Create fireworks overlay and flying drone for public events
+    if (category === 'public') {
+      // Destroy previous fireworks if exists
+      if (this.fireworks) {
+        this.fireworks.destroy();
+        this.fireworks = null;
+      }
+
+      // Destroy previous drone if exists
+      if (this.flyingDrone) {
+        this.flyingDrone.destroy();
+        this.flyingDrone = null;
+      }
+
+      const modalContent = this.modal.querySelector('.event-modal-content');
+      if (modalContent) {
+        this.fireworks = new CanvasFireworks(modalContent, { overlay: true });
+        this.flyingDrone = new FlyingDrone(modalContent, {
+          speed: 0.08,
+          scale: 4.0,
+          loop: true
+        });
+      }
     }
 
     // Animate in
@@ -240,6 +280,18 @@ export class EventModal {
         if (this.modelViewer) {
           this.modelViewer.destroy();
           this.modelViewer = null;
+        }
+
+        // Destroy fireworks overlay
+        if (this.fireworks) {
+          this.fireworks.destroy();
+          this.fireworks = null;
+        }
+
+        // Destroy flying drone
+        if (this.flyingDrone) {
+          this.flyingDrone.destroy();
+          this.flyingDrone = null;
         }
       }
     });
@@ -561,6 +613,18 @@ export class EventModal {
     if (this.modelViewer) {
       this.modelViewer.destroy();
       this.modelViewer = null;
+    }
+
+    // Destroy fireworks overlay
+    if (this.fireworks) {
+      this.fireworks.destroy();
+      this.fireworks = null;
+    }
+
+    // Destroy flying drone
+    if (this.flyingDrone) {
+      this.flyingDrone.destroy();
+      this.flyingDrone = null;
     }
 
     if (this.modal) {

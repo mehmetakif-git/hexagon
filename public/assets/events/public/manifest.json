@@ -2,16 +2,10 @@
   "category": "public",
   "items": [
     { "file": "1.jpg", "type": "image", "title": "PSG Legends at The Pearl-Qatar (2024)" },
-    { "file": "2.jpg", "type": "image", "title": "Lusail Circuit Sports Club - Speed Fest (2023)" },
-    { "file": "3.jpg", "type": "image", "title": "Formula 1 Concerts - Stage Pyrotechnics and SFX (2023)" },
-    { "file": "4.jpg", "type": "image", "title": "Asian Football Championship - The Pearl-Qatar Activations (2023)" },
-    { "file": "5.jpg", "type": "image", "title": "Darb-Al Saai Activation (2019)" },
-    { "file": "6.jpg", "type": "image", "title": "Medina Centrale Festival (2019)" },
-    { "file": "7.jpg", "type": "image", "title": "Qatar National Sports Day at The Pearl-Qatar (2017)" },
-    { "file": "8.jpg", "type": "image", "title": "Eid Festivals at Katara Cultural Village (2017)" },
-    { "file": "9.jpg", "type": "image", "title": "Qatar Football Association - Fan Zone (2015)" },
-    { "file": "10.jpg", "type": "image", "title": "Qatar International Food Festival (2015)" },
-    { "file": "11.jpg", "type": "image", "title": "Qatar Summer Festival Watershow (2014)" },
-    { "file": "12.jpg", "type": "image", "title": "Turks at Katara Festival (2014)" }
+    { "file": "2.webp", "type": "image", "title": "Lusail Circuit Sports Club - Speed Fest (2023)" },
+    { "file": "3.webp", "type": "image", "title": "Formula 1 Concerts - Stage Pyrotechnics and SFX (2023)" },
+    { "file": "4.webp", "type": "image", "title": "Asian Football Championship - The Pearl-Qatar Activations (2023)" },
+    { "file": "5.webp", "type": "image", "title": "Darb-Al Saai Activation (2019)" },
+    { "file": "6.webp", "type": "image", "title": "Medina Centrale Festival (2019)" }
   ]
 }
