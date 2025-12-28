@@ -1,12 +1,5 @@
 // src/HolographicCard.js
-// 3D Holographic Profile Card - Converted from React to Vanilla JS
-
-const ANIMATION_CONFIG = {
-  INITIAL_DURATION: 1200,
-  INITIAL_X_OFFSET: 70,
-  INITIAL_Y_OFFSET: 60,
-  ENTER_TRANSITION_MS: 180
-};
+// 3D Holographic Profile Cards - Inline Version (No Modal)
 
 const clamp = (v, min = 0, max = 100) => Math.min(Math.max(v, min), max);
 const round = (v, precision = 3) => parseFloat(v.toFixed(precision));
@@ -27,8 +20,6 @@ class TiltEngine {
     this.targetY = 0;
 
     this.DEFAULT_TAU = 0.14;
-    this.INITIAL_TAU = 0.6;
-    this.initialUntil = 0;
   }
 
   setVarsFromXY(x, y) {
@@ -51,8 +42,8 @@ class TiltEngine {
       '--pointer-from-center': `${clamp(Math.hypot(percentY - 50, percentX - 50) / 50, 0, 1)}`,
       '--pointer-from-top': `${percentY / 100}`,
       '--pointer-from-left': `${percentX / 100}`,
-      '--rotate-x': `${round(-(centerX / 5))}deg`,
-      '--rotate-y': `${round(centerY / 4)}deg`
+      '--rotate-x': `${round(-(centerX / 6))}deg`,
+      '--rotate-y': `${round(centerY / 5)}deg`
     };
 
     for (const [k, v] of Object.entries(properties)) {
@@ -66,8 +57,7 @@ class TiltEngine {
     const dt = (ts - this.lastTs) / 1000;
     this.lastTs = ts;
 
-    const tau = ts < this.initialUntil ? this.INITIAL_TAU : this.DEFAULT_TAU;
-    const k = 1 - Math.exp(-dt / tau);
+    const k = 1 - Math.exp(-dt / this.DEFAULT_TAU);
 
     this.currentX += (this.targetX - this.currentX) * k;
     this.currentY += (this.targetY - this.currentY) * k;
@@ -113,11 +103,6 @@ class TiltEngine {
     this.setTarget(this.shell.clientWidth / 2, this.shell.clientHeight / 2);
   }
 
-  beginInitial(durationMs) {
-    this.initialUntil = performance.now() + durationMs;
-    this.start();
-  }
-
   getCurrent() {
     return { x: this.currentX, y: this.currentY, tx: this.targetX, ty: this.targetY };
   }
@@ -133,295 +118,201 @@ class TiltEngine {
 
 export class HolographicCard {
   constructor() {
-    this.modal = null;
-    this.tiltEngine = null;
-    this.isOpen = false;
-    this.currentMember = null;
-    this.enterTimer = null;
-    this.leaveRaf = null;
+    this.tiltEngines = new Map();
+    this.leaveRafs = new Map();
 
-    // Team member data
-    this.teamData = {
-      'mohamed': {
-        name: 'Mohamed Khalifa Al Sada',
-        title: 'Chairman & Founding Partner',
-        handle: 'mohamed.alsada',
-        status: 'Doha, Qatar',
-        avatar: '/assets/team/mohamed.jpg',
-        contactText: 'Contact',
-        email: 'mohamed@hexagon.qa'
-      },
-      'ali': {
-        name: 'Ali Boray Dundar',
-        title: 'Founding Partner',
-        handle: 'ali.dundar',
-        status: 'Istanbul, Turkey',
-        avatar: '/assets/team/ali.jpg',
-        contactText: 'Contact',
-        email: 'ali@hexagon.qa'
-      },
-      'markus': {
-        name: 'Markus Katterle',
-        title: 'Founding Partner',
-        handle: 'markus.katterle',
-        status: 'London, UK',
-        avatar: '/assets/team/markus.jpg',
-        contactText: 'Contact',
-        email: 'markus@hexagon.qa'
-      },
-      'alihan': {
+    // Team member data - 9 members across 3 pages
+    this.teamData = [
+      // Page 1
+      {
+        id: 'alihan',
         name: 'Alihan Tokmak',
         title: 'Managing Partner',
-        handle: 'alihan.tokmak',
-        status: 'Doha, Qatar',
-        avatar: '/assets/team/alihan.jpg',
-        contactText: 'Contact',
-        email: 'alihan@hexagon.qa'
+        avatar: '/assets/team/alihan.png',
+        email: 'alihan@hexagon.qa',
+        page: 1
       },
-      'gulsah': {
-        name: 'Gulsah Uzun',
-        title: 'Events Business Director',
-        handle: 'gulsah.uzun',
-        status: 'Doha, Qatar',
-        avatar: '/assets/team/gulsah.jpg',
-        contactText: 'Contact',
-        email: 'gulsah@hexagon.qa'
+      {
+        id: 'khalifa',
+        name: 'Khalifa Al Sada',
+        title: 'Partner',
+        avatar: '/assets/team/khalifa.png',
+        email: 'khalifa@hexagon.qa',
+        page: 1
+      },
+      {
+        id: 'hussain',
+        name: 'Hussain Al Sada',
+        title: 'Partner',
+        avatar: '/assets/team/hussain.png',
+        email: 'hussain@hexagon.qa',
+        page: 1
+      },
+      // Page 2
+      {
+        id: 'edrin',
+        name: 'Edrin Latorre',
+        title: 'Senior Operations Manager',
+        avatar: '/assets/team/edrin.png',
+        email: 'edrin@hexagon.qa',
+        page: 2
+      },
+      {
+        id: 'karim',
+        name: 'Karim Tawfik',
+        title: 'Senior Projects Manager',
+        avatar: '/assets/team/karim.png',
+        email: 'karim@hexagon.qa',
+        page: 2
+      },
+      {
+        id: 'gulben',
+        name: 'Gulben Gunduz',
+        title: 'Business Operations Director',
+        avatar: '/assets/team/gulben.png',
+        email: 'gulben@hexagon.qa',
+        page: 2
+      },
+      // Page 3
+      {
+        id: 'nicole',
+        name: 'Nicole Bautista',
+        title: 'Admin and DMC Executive',
+        avatar: '/assets/team/nicole.png',
+        email: 'nicole@hexagon.qa',
+        page: 3
+      },
+      {
+        id: 'omer',
+        name: 'Omer Aybey',
+        title: '3D Visualizer',
+        avatar: '/assets/team/omer.png',
+        email: 'omer@hexagon.qa',
+        page: 3
+      },
+      {
+        id: 'ahmed',
+        name: 'Ahmed Nasser',
+        title: 'Senior Designer',
+        avatar: '/assets/team/ahmed.png',
+        email: 'ahmed@hexagon.qa',
+        page: 3
       }
-    };
+    ];
 
     this.init();
   }
 
   init() {
-    this.createModal();
-    this.bindTeamMemberClicks();
-    this.bindModalEvents();
+    this.renderCards();
+    this.bindTiltEvents();
   }
 
-  createModal() {
-    const modalHTML = `
-      <div class="pc-modal" id="pc-modal">
-        <div class="pc-modal-backdrop"></div>
-        <div class="pc-modal-container">
-          <button class="pc-modal-close" aria-label="Close">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M18 6L6 18M6 6l12 12"/>
-            </svg>
-          </button>
+  createCardHTML(member) {
+    const fallbackAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name)}&size=400&background=FF8106&color=fff&bold=true`;
 
-          <div class="pc-card-wrapper">
-            <div class="pc-behind"></div>
-            <div class="pc-card-shell">
-              <section class="pc-card">
-                <div class="pc-inside">
-                  <div class="pc-shine"></div>
-                  <div class="pc-glare"></div>
+    return `
+      <div class="holo-card-wrapper" data-member="${member.id}">
+        <div class="holo-behind"></div>
+        <div class="holo-card-shell">
+          <div class="holo-card">
+            <div class="holo-inside">
+              <div class="holo-shine"></div>
+              <div class="holo-glare"></div>
 
-                  <!-- Avatar content layer -->
-                  <div class="pc-content pc-avatar-content">
-                    <img class="pc-avatar" src="" alt="" loading="lazy">
+              <!-- Avatar layer -->
+              <div class="holo-content holo-avatar-content">
+                <img class="holo-avatar" src="${member.avatar}" alt="${member.name}"
+                     onerror="this.src='${fallbackAvatar}'" loading="lazy">
+              </div>
 
-                    <!-- User info bar at bottom -->
-                    <div class="pc-user-info">
-                      <div class="pc-user-details">
-                        <div class="pc-mini-avatar">
-                          <img src="" alt="">
-                        </div>
-                        <div class="pc-user-text">
-                          <div class="pc-handle"></div>
-                          <div class="pc-status"></div>
-                        </div>
-                      </div>
-                      <button class="pc-contact-btn">Contact</button>
-                    </div>
-                  </div>
-
-                  <!-- Name/Title layer -->
-                  <div class="pc-content">
-                    <div class="pc-details">
-                      <h3 class="pc-name"></h3>
-                      <p class="pc-title"></p>
-                    </div>
-                  </div>
+              <!-- Info layer -->
+              <div class="holo-content">
+                <div class="holo-details">
+                  <h4 class="holo-name">${member.name}</h4>
+                  <p class="holo-title">${member.title}</p>
                 </div>
-              </section>
+              </div>
             </div>
           </div>
         </div>
       </div>
     `;
-
-    document.body.insertAdjacentHTML('beforeend', modalHTML);
-    this.modal = document.getElementById('pc-modal');
   }
 
-  bindTeamMemberClicks() {
-    const teamMembers = document.querySelectorAll('.team-member-flip');
-    const memberKeys = ['mohamed', 'ali', 'markus', 'alihan', 'gulsah'];
+  renderCards() {
+    // Render cards for each page
+    for (let page = 1; page <= 3; page++) {
+      const container = document.getElementById(`team-page-${page}`);
+      if (!container) continue;
 
-    teamMembers.forEach((member, index) => {
-      const key = memberKeys[index];
-      if (key) {
-        member.dataset.member = key;
-        member.style.cursor = 'pointer';
-        member.addEventListener('click', (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          this.open(key);
-        });
-      }
-    });
-  }
-
-  bindModalEvents() {
-    const backdrop = this.modal.querySelector('.pc-modal-backdrop');
-    const closeBtn = this.modal.querySelector('.pc-modal-close');
-
-    backdrop.addEventListener('click', () => this.close());
-    closeBtn.addEventListener('click', () => this.close());
-
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && this.isOpen) {
-        this.close();
-      }
-    });
-  }
-
-  open(memberKey) {
-    const data = this.teamData[memberKey];
-    if (!data) return;
-
-    this.currentMember = memberKey;
-    this.populateCard(data);
-
-    this.modal.classList.add('active');
-    document.body.style.overflow = 'hidden';
-    this.isOpen = true;
-
-    // Initialize tilt engine after modal is visible
-    requestAnimationFrame(() => {
-      this.initTiltEngine();
-    });
-  }
-
-  close() {
-    this.modal.classList.remove('active');
-    document.body.style.overflow = '';
-    this.isOpen = false;
-
-    // Cleanup
-    if (this.tiltEngine) {
-      this.tiltEngine.destroy();
-      this.tiltEngine = null;
+      const pageMembers = this.teamData.filter(m => m.page === page);
+      container.innerHTML = pageMembers.map(m => this.createCardHTML(m)).join('');
     }
-    if (this.enterTimer) {
-      clearTimeout(this.enterTimer);
-      this.enterTimer = null;
-    }
-    if (this.leaveRaf) {
-      cancelAnimationFrame(this.leaveRaf);
-      this.leaveRaf = null;
-    }
-
-    const shell = this.modal.querySelector('.pc-card-shell');
-    if (shell) {
-      shell.classList.remove('active', 'entering');
-    }
-
-    this.currentMember = null;
   }
 
-  populateCard(data) {
-    const fallbackAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name)}&size=800&background=FF8106&color=fff&bold=true`;
+  bindTiltEvents() {
+    const wrappers = document.querySelectorAll('.holo-card-wrapper');
 
-    // Main avatar
-    const avatar = this.modal.querySelector('.pc-avatar');
-    avatar.src = data.avatar;
-    avatar.alt = data.name;
-    avatar.onerror = () => { avatar.src = fallbackAvatar; };
+    wrappers.forEach(wrapper => {
+      const shell = wrapper.querySelector('.holo-card-shell');
+      const memberId = wrapper.dataset.member;
 
-    // Mini avatar
-    const miniAvatar = this.modal.querySelector('.pc-mini-avatar img');
-    miniAvatar.src = data.avatar;
-    miniAvatar.alt = data.name;
-    miniAvatar.onerror = () => { miniAvatar.src = fallbackAvatar; };
+      if (!shell) return;
 
-    // Details
-    this.modal.querySelector('.pc-name').textContent = data.name;
-    this.modal.querySelector('.pc-title').textContent = data.title;
-    this.modal.querySelector('.pc-handle').textContent = `@${data.handle}`;
-    this.modal.querySelector('.pc-status').textContent = data.status;
+      const tiltEngine = new TiltEngine(shell, wrapper);
+      this.tiltEngines.set(memberId, tiltEngine);
 
-    // Contact button
-    const contactBtn = this.modal.querySelector('.pc-contact-btn');
-    contactBtn.textContent = data.contactText;
-    contactBtn.onclick = () => {
-      window.location.href = `mailto:${data.email}`;
-    };
-  }
+      // Initialize at center
+      tiltEngine.setImmediate(shell.clientWidth / 2, shell.clientHeight / 2);
 
-  initTiltEngine() {
-    const shell = this.modal.querySelector('.pc-card-shell');
-    const wrap = this.modal.querySelector('.pc-card-wrapper');
-
-    if (!shell || !wrap) return;
-
-    this.tiltEngine = new TiltEngine(shell, wrap);
-
-    // Event handlers
-    const handlePointerMove = (e) => {
-      const rect = shell.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      this.tiltEngine.setTarget(x, y);
-    };
-
-    const handlePointerEnter = (e) => {
-      shell.classList.add('active');
-      shell.classList.add('entering');
-
-      if (this.enterTimer) clearTimeout(this.enterTimer);
-      this.enterTimer = setTimeout(() => {
-        shell.classList.remove('entering');
-      }, ANIMATION_CONFIG.ENTER_TRANSITION_MS);
-
-      const rect = shell.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      this.tiltEngine.setTarget(x, y);
-    };
-
-    const handlePointerLeave = () => {
-      this.tiltEngine.toCenter();
-
-      const checkSettle = () => {
-        const { x, y, tx, ty } = this.tiltEngine.getCurrent();
-        const settled = Math.hypot(tx - x, ty - y) < 0.6;
-        if (settled) {
-          shell.classList.remove('active');
-          this.leaveRaf = null;
-        } else {
-          this.leaveRaf = requestAnimationFrame(checkSettle);
-        }
+      const handlePointerMove = (e) => {
+        const rect = shell.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        tiltEngine.setTarget(x, y);
       };
 
-      if (this.leaveRaf) cancelAnimationFrame(this.leaveRaf);
-      this.leaveRaf = requestAnimationFrame(checkSettle);
-    };
+      const handlePointerEnter = (e) => {
+        shell.classList.add('active');
 
-    shell.addEventListener('pointerenter', handlePointerEnter);
-    shell.addEventListener('pointermove', handlePointerMove);
-    shell.addEventListener('pointerleave', handlePointerLeave);
+        const rect = shell.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        tiltEngine.setTarget(x, y);
+      };
 
-    // Store handlers for cleanup
-    shell._holoHandlers = { handlePointerEnter, handlePointerMove, handlePointerLeave };
+      const handlePointerLeave = () => {
+        tiltEngine.toCenter();
 
-    // Initial animation - start from corner, move to center
-    const initialX = (shell.clientWidth || 300) - ANIMATION_CONFIG.INITIAL_X_OFFSET;
-    const initialY = ANIMATION_CONFIG.INITIAL_Y_OFFSET;
-    this.tiltEngine.setImmediate(initialX, initialY);
-    this.tiltEngine.toCenter();
-    this.tiltEngine.beginInitial(ANIMATION_CONFIG.INITIAL_DURATION);
+        const checkSettle = () => {
+          const { x, y, tx, ty } = tiltEngine.getCurrent();
+          const settled = Math.hypot(tx - x, ty - y) < 0.6;
+          if (settled) {
+            shell.classList.remove('active');
+            this.leaveRafs.delete(memberId);
+          } else {
+            this.leaveRafs.set(memberId, requestAnimationFrame(checkSettle));
+          }
+        };
+
+        const existingRaf = this.leaveRafs.get(memberId);
+        if (existingRaf) cancelAnimationFrame(existingRaf);
+        this.leaveRafs.set(memberId, requestAnimationFrame(checkSettle));
+      };
+
+      shell.addEventListener('pointerenter', handlePointerEnter);
+      shell.addEventListener('pointermove', handlePointerMove);
+      shell.addEventListener('pointerleave', handlePointerLeave);
+    });
+  }
+
+  destroy() {
+    this.tiltEngines.forEach(engine => engine.destroy());
+    this.tiltEngines.clear();
+
+    this.leaveRafs.forEach(raf => cancelAnimationFrame(raf));
+    this.leaveRafs.clear();
   }
 }
 
