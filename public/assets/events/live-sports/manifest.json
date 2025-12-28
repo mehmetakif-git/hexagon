@@ -1,10 +1,10 @@
 {
   "category": "live-sports",
   "items": [
-    { "file": "1.jpg", "type": "image", "title": "Padel World Cup Closing Ceremonies" },
-    { "file": "2.jpg", "type": "image", "title": "Hayatna Activation FIFA World Cup" },
-    { "file": "3.jpg", "type": "image", "title": "FIFA World Cup Pre-Match Ceremonies (2022)" },
-    { "file": "4.jpg", "type": "image", "title": "Arab Cup Opening Ceremonies (2021)" },
-    { "file": "5.jpg", "type": "image", "title": "PSA Squash Qatar Closing Ceremonies" }
+    { "file": "1.webp", "type": "image", "title": "Padel World Cup Closing Ceremonies" },
+    { "file": "2.webp", "type": "image", "title": "Hayatna Activation FIFA World Cup" },
+    { "file": "3.webp", "type": "image", "title": "FIFA World Cup Pre-Match Ceremonies (2022)" },
+    { "file": "4.webp", "type": "image", "title": "Arab Cup Opening Ceremonies (2021)" },
+    { "file": "5.webp", "type": "image", "title": "PSA Squash Qatar Closing Ceremonies" }
   ]
 }
