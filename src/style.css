@@ -2301,10 +2301,10 @@ p {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 3rem 2rem 2rem 2rem;
+  padding: 2rem;
   overflow: hidden;
-  /* 3D space */
-  perspective: 1200px;
+  /* 3D space - farther perspective = less distortion */
+  perspective: 1800px;
   perspective-origin: center center;
   /* Stacking context for 3D effects */
   isolation: isolate;
@@ -2325,7 +2325,7 @@ p {
   position: relative;
   width: 100%;
   height: 100%;
-  max-height: 450px;
+  max-height: 400px;
   overflow: visible;
 }
 
@@ -2347,13 +2347,15 @@ p {
 /* Carousel Item */
 .carousel-item {
   position: absolute;
-  width: 400px;
-  height: 280px;
-  border-radius: 16px;
+  width: 500px;
+  height: 320px;
+  border-radius: 20px;
   overflow: hidden;
-  background: rgba(0, 0, 0, 0.5);
-  border: 2px solid rgba(255, 129, 6, 0.15);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.6);
+  border: 2px solid rgba(255, 129, 6, 0.2);
+  box-shadow:
+    0 25px 50px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.05);
   transform-style: preserve-3d;
   backface-visibility: hidden;
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
@@ -2362,9 +2364,12 @@ p {
 
 .carousel-item.active {
   border-color: var(--primary);
+  border-width: 3px;
   box-shadow:
-    0 30px 60px rgba(0, 0, 0, 0.5),
-    0 0 50px rgba(255, 129, 6, 0.2);
+    0 35px 70px rgba(0, 0, 0, 0.6),
+    0 0 60px rgba(255, 129, 6, 0.25),
+    0 0 0 1px rgba(255, 129, 6, 0.5),
+    inset 0 0 30px rgba(255, 129, 6, 0.05);
 }
 
 .carousel-item.error {
@@ -2385,7 +2390,12 @@ p {
   left: 0;
   right: 0;
   padding: 1.5rem;
-  background: linear-gradient(transparent, rgba(0, 0, 0, 0.85));
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.9) 0%,
+    rgba(0, 0, 0, 0.5) 50%,
+    transparent 100%
+  );
   display: flex;
   align-items: flex-end;
   justify-content: flex-end;
@@ -2400,10 +2410,12 @@ p {
 
 .item-number {
   font-family: 'Alexandria', sans-serif;
-  font-size: 1.8rem;
+  font-size: 2rem;
   font-weight: 700;
   color: var(--primary);
-  text-shadow: 0 0 15px rgba(255, 129, 6, 0.6);
+  text-shadow:
+    0 0 20px rgba(255, 129, 6, 0.8),
+    0 2px 10px rgba(0, 0, 0, 0.5);
 }
 
 .play-icon {
@@ -2606,8 +2618,12 @@ p {
 
 @media (max-width: 1024px) {
   .carousel-item {
-    width: 340px;
-    height: 240px;
+    width: 400px;
+    height: 260px;
+  }
+
+  .event-carousel-wrapper {
+    perspective: 1500px;
   }
 
   .carousel-nav {
@@ -2633,12 +2649,13 @@ p {
   }
 
   .carousel-item {
-    width: 280px;
-    height: 200px;
+    width: 320px;
+    height: 220px;
   }
 
   .event-carousel-wrapper {
-    padding: 2rem 1rem 1rem 1rem;
+    perspective: 1200px;
+    padding: 1.5rem 1rem;
   }
 
   .event-modal-info {
@@ -2655,18 +2672,18 @@ p {
   }
 
   .carousel-nav-prev {
-    left: 10px;
+    left: 8px;
   }
 
   .carousel-nav-next {
-    right: 10px;
+    right: 8px;
   }
 }
 
 @media (max-width: 480px) {
   .carousel-item {
-    width: 260px;
-    height: 180px;
+    width: 280px;
+    height: 190px;
   }
 
   .carousel-nav {

@@ -47,10 +47,10 @@ export class EventModal {
     // 3D Effects
     this.effects3D = null;
 
-    // Carousel settings
-    this.itemWidth = 400;
-    this.gap = 20;
-    this.trackOffset = this.itemWidth + this.gap;
+    // Carousel settings - optimized for overlap effect
+    this.itemWidth = 500;
+    this.gap = 16;
+    this.trackOffset = 280; // Smaller for overlap effect
 
     this.init();
   }
@@ -338,18 +338,34 @@ export class EventModal {
     const container = this.track.parentElement;
     if (!container) return;
 
-    const centerOffset = (container.offsetWidth - this.itemWidth) / 2;
+    // Center point
+    const containerWidth = container.offsetWidth;
+    const centerX = (containerWidth - this.itemWidth) / 2;
 
     items.forEach((item, index) => {
-      const offset = (index - this.currentIndex) * this.trackOffset;
-      const rotateY = (index - this.currentIndex) * 45; // 45° per item
-      const scale = index === this.currentIndex ? 1 : 0.8;
-      const zOffset = Math.abs(index - this.currentIndex) * -100;
-      const opacity = Math.abs(index - this.currentIndex) > 2 ? 0 : 1 - Math.abs(index - this.currentIndex) * 0.2;
-      const zIndex = 10 - Math.abs(index - this.currentIndex);
+      const diff = index - this.currentIndex;
+
+      // X position - offset from center
+      const xOffset = diff * this.trackOffset;
+
+      // Rotation - max 25° (less aggressive than 45°)
+      const maxRotation = 25;
+      const rotateY = Math.max(-maxRotation, Math.min(maxRotation, diff * 18));
+
+      // Scale - active is full size, others much smaller for depth
+      const scale = index === this.currentIndex ? 1 : 0.7;
+
+      // Z position - more pronounced depth
+      const zOffset = -Math.abs(diff) * 120;
+
+      // Opacity - fade out distant items
+      const opacity = Math.abs(diff) > 2 ? 0 : 1 - Math.abs(diff) * 0.2;
+
+      // Z-index - active in front
+      const zIndex = 100 - Math.abs(diff) * 10;
 
       const props = {
-        x: centerOffset + offset,
+        x: centerX + xOffset,
         rotateY: rotateY,
         z: zOffset,
         scale: scale,
