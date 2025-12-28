@@ -1,6 +1,5 @@
 // src/EventModal.js
 import gsap from 'gsap';
-import { EventEffects3D } from './EventEffects3D.js';
 
 // Kategori bilgileri
 const CATEGORIES = {
@@ -43,9 +42,6 @@ export class EventModal {
     this.wasDragging = false; // Flag to prevent click after drag
     this.dragStartX = 0;
     this.dragCurrentX = 0;
-
-    // 3D Effects
-    this.effects3D = null;
 
     // Carousel settings - optimized for overlap effect
     this.itemWidth = 500;
@@ -202,17 +198,6 @@ export class EventModal {
     this.modal.classList.add('active');
     document.body.style.overflow = 'hidden';
 
-    // Initialize 3D effects
-    const carouselWrapper = this.modal.querySelector('.event-carousel-wrapper');
-    if (carouselWrapper && !this.effects3D) {
-      this.effects3D = new EventEffects3D(carouselWrapper);
-    }
-
-    // Set category-specific effect
-    if (this.effects3D) {
-      this.effects3D.setCategory(category);
-    }
-
     // Animate in
     gsap.fromTo(this.modal.querySelector('.event-modal-content'),
       { scale: 0.9, opacity: 0, y: 30 },
@@ -231,12 +216,6 @@ export class EventModal {
         this.modal.classList.remove('active');
         document.body.style.overflow = '';
         this.clearMedia();
-
-        // Cleanup 3D effects
-        if (this.effects3D) {
-          this.effects3D.destroy();
-          this.effects3D = null;
-        }
       }
     });
   }
@@ -528,12 +507,6 @@ export class EventModal {
   }
 
   destroy() {
-    // Cleanup 3D effects
-    if (this.effects3D) {
-      this.effects3D.destroy();
-      this.effects3D = null;
-    }
-
     if (this.modal) {
       this.modal.remove();
     }

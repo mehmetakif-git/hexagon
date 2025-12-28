@@ -2306,19 +2306,6 @@ p {
   /* 3D space - farther perspective = less distortion */
   perspective: 1800px;
   perspective-origin: center center;
-  /* Stacking context for 3D effects */
-  isolation: isolate;
-}
-
-/* 3D Effects Canvas */
-.event-carousel-wrapper canvas {
-  position: absolute !important;
-  top: 0;
-  left: 0;
-  width: 100% !important;
-  height: 100% !important;
-  pointer-events: none;
-  z-index: 5;
 }
 
 .event-carousel-container {

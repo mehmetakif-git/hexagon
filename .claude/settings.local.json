@@ -7,7 +7,19 @@
       "Bash(powershell -Command \"New-Item -ItemType Directory -Force -Path 'e:/hexagon/public/fonts'; Invoke-WebRequest -Uri 'https://threejs.org/examples/fonts/helvetiker_bold.typeface.json' -OutFile 'e:/hexagon/public/fonts/helvetiker_bold.typeface.json'\":*)",
       "Bash(dir:*)",
       "Bash(gh auth status:*)",
-      "Bash(gh repo view:*)"
+      "Bash(gh repo view:*)",
+      "Bash(npm install:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nAdd Contact Modal with 3D Globe and TracingBeam reveal animation\n\n- Add TracingBeam reveal animation with staggered markers \\(bottom-to-top\\)\n- Create HexagonGlobe class with rotating 3D globe showing office locations\n- Implement Contact Modal with form and interactive globe\n- Globe shows Doha HQ with arcs to London, Istanbul, Dubai\n- Add location click to rotate globe to specific cities\n- Simplify contact form \\(name, email, message only\\)\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git push:*)",
+      "Bash(powershell:*)",
+      "Bash(cd /d e:hexagon)",
+      "Bash(git -C e:/hexagon status)",
+      "Bash(git -C e:/hexagon diff --stat)",
+      "Bash(git -C e:/hexagon log --oneline -3)",
+      "Bash(git -C e:/hexagon add:*)",
+      "Bash(git -C e:/hexagon commit -m \"$\\(cat <<''EOF''\nEnhance Globe interaction and unify Contact Modal styling\n\n- Add city rotation with auto-rotate pause \\(rotateToCity method\\)\n- Fix globe rotation formula with calibration offset\n- Pause auto-rotate during mouse drag interaction\n- Add debug logging for city click events\n- Unify Contact Modal with hexagon-card design system\n- Add card edge indicator, gradient line, radial glow effects\n- Update form inputs with orange-themed styling\n- Add sweep animation to submit button\n- Add grid pattern to globe section background\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git -C e:/hexagon push)"
     ]
   }
 }
