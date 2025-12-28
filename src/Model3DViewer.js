@@ -19,7 +19,8 @@ const CATEGORY_MODELS = {
     scale: 1.0,
     position: { x: 0, y: 0, z: 0 },
     rotation: { x: 0, y: 0.3, z: 0 },
-    autoRotateSpeed: 0.3
+    autoRotateSpeed: 0.3,
+    autoRotateSpeedX: 0.1 // Slight X rotation
   },
   'corporate': {
     path: '/assets/models/office_suitcas.glb',
@@ -107,23 +108,24 @@ export class Model3DViewer {
   }
 
   setupLighting() {
-    // Neutral white lighting to preserve original model colors
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+    // Warm ambient with slight orange tint
+    const ambientLight = new THREE.AmbientLight(0xfff5eb, 0.7);
     this.scene.add(ambientLight);
 
     const keyLight = new THREE.DirectionalLight(0xffffff, 1.0);
     keyLight.position.set(3, 3, 5);
     this.scene.add(keyLight);
 
-    const fillLight = new THREE.DirectionalLight(0xffffff, 0.4);
-    fillLight.position.set(-3, 0, 3);
-    this.scene.add(fillLight);
+    // Subtle orange accent light for theme consistency
+    const orangeAccent = new THREE.DirectionalLight(0xff8106, 0.3);
+    orangeAccent.position.set(-3, 0, 3);
+    this.scene.add(orangeAccent);
 
-    const rimLight = new THREE.DirectionalLight(0xffffff, 0.6);
+    const rimLight = new THREE.DirectionalLight(0xffffff, 0.5);
     rimLight.position.set(0, 2, -5);
     this.scene.add(rimLight);
 
-    const bottomLight = new THREE.PointLight(0xffffff, 0.5, 10);
+    const bottomLight = new THREE.PointLight(0xffffff, 0.4, 10);
     bottomLight.position.set(0, -3, 2);
     this.scene.add(bottomLight);
   }
@@ -663,6 +665,11 @@ export class Model3DViewer {
     if (this.model && this.currentConfig) {
       if (this.autoRotate && !this.isDragging) {
         this.model.rotation.y += this.currentConfig.autoRotateSpeed * delta;
+
+        // Optional X axis rotation (for building_entrance)
+        if (this.currentConfig.autoRotateSpeedX) {
+          this.model.rotation.x += this.currentConfig.autoRotateSpeedX * delta;
+        }
 
         // Subtle floating animation
         const floatOffset = Math.sin(time * 1.5) * 0.05;

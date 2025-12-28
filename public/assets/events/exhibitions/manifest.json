@@ -1,9 +1,8 @@
 {
   "category": "exhibitions",
   "items": [
-    { "file": "1.jpg", "type": "image", "title": "Treve Tower Exhibition Stand at the Mondrian Doha Hotel" },
-    { "file": "2.jpg", "type": "image", "title": "Kowate Pavilion at Project Qatar (2018)" },
-    { "file": "3.jpg", "type": "image", "title": "BMC Pavilion at Dimdex Qatar (2018)" },
-    { "file": "4.jpg", "type": "image", "title": "Ministry of Culture and Tourism Pavilion at Doha Book Fair (2016)" }
+    { "file": "1.webp", "type": "image", "title": "Treve Tower Exhibition Stand at the Mondrian Doha Hotel" },
+    { "file": "2.webp", "type": "image", "title": "Kowate Pavilion at Project Qatar (2018)" },
+    { "file": "3.webp", "type": "image", "title": "BMC Pavilion at Dimdex Qatar (2018)" }
   ]
 }

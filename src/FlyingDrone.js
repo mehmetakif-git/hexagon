@@ -70,27 +70,23 @@ export class FlyingDrone {
     this.renderer.setClearColor(0x000000, 0);
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.5;
+    this.renderer.toneMappingExposure = 1.3;
 
-    // Lighting - brighter for better visibility
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
+    // Lighting - subtle theme-matched orange tones
+    const ambientLight = new THREE.AmbientLight(0xfff5eb, 0.7); // Warm ambient
     this.scene.add(ambientLight);
 
-    const keyLight = new THREE.DirectionalLight(0xffffff, 1.5);
+    const keyLight = new THREE.DirectionalLight(0xffffff, 1.0);
     keyLight.position.set(3, 3, 5);
     this.scene.add(keyLight);
 
-    const fillLight = new THREE.DirectionalLight(0xffffff, 0.8);
-    fillLight.position.set(-3, 0, 3);
-    this.scene.add(fillLight);
+    const orangeAccent = new THREE.DirectionalLight(0xff8106, 0.3); // Subtle orange
+    orangeAccent.position.set(-2, 0, 3);
+    this.scene.add(orangeAccent);
 
-    const rimLight = new THREE.DirectionalLight(0xffffff, 1.0);
+    const rimLight = new THREE.DirectionalLight(0xffffff, 0.5);
     rimLight.position.set(0, 2, -5);
     this.scene.add(rimLight);
-
-    const bottomLight = new THREE.DirectionalLight(0xffffff, 0.5);
-    bottomLight.position.set(0, -3, 2);
-    this.scene.add(bottomLight);
 
     // Resize handler
     this.resizeHandler = () => this.handleResize();
