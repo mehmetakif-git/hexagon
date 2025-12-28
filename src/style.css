@@ -2615,85 +2615,45 @@ p {
   width: 180px;
   height: 180px;
   z-index: 15;
-  border-radius: 16px;
-  overflow: hidden;
+  /* FULLY TRANSPARENT - no background */
+  background: transparent !important;
+  border: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-radius: 0;
+  overflow: visible;
   cursor: grab;
-  /* Glass effect */
-  background: rgba(255, 129, 6, 0.03);
-  border: 1px solid rgba(255, 129, 6, 0.15);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  transition: all 0.3s ease;
+  box-shadow: none !important;
 }
 
 .model-viewer-container:hover {
-  border-color: rgba(255, 129, 6, 0.4);
-  box-shadow:
-    0 0 30px rgba(255, 129, 6, 0.2),
-    inset 0 0 20px rgba(255, 129, 6, 0.05);
-  transform: scale(1.02);
+  /* Stay transparent on hover */
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  transform: none;
 }
 
 .model-viewer-container:active {
   cursor: grabbing;
 }
 
-/* Canvas inside */
+/* Canvas */
 .model-viewer-container canvas {
   width: 100% !important;
   height: 100% !important;
   display: block;
+  background: transparent !important;
 }
 
-/* Background glow */
+/* Glow effect - HIDDEN */
 .model-viewer-glow {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 120px;
-  height: 120px;
-  background: radial-gradient(
-    circle,
-    rgba(255, 129, 6, 0.15) 0%,
-    rgba(255, 129, 6, 0.05) 40%,
-    transparent 70%
-  );
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: -1;
-  animation: model-glow-pulse 3s ease-in-out infinite;
+  display: none;
 }
 
-@keyframes model-glow-pulse {
-  0%, 100% {
-    transform: translate(-50%, -50%) scale(1);
-    opacity: 0.6;
-  }
-  50% {
-    transform: translate(-50%, -50%) scale(1.2);
-    opacity: 1;
-  }
-}
-
-/* Label hint */
+/* Label hint - HIDDEN */
 .model-viewer-container::after {
-  content: 'Drag to rotate';
-  position: absolute;
-  bottom: 8px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 0.6rem;
-  color: rgba(255, 255, 255, 0.3);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  pointer-events: none;
-}
-
-.model-viewer-container:hover::after {
-  opacity: 1;
+  display: none;
 }
 
 /* ========================================
