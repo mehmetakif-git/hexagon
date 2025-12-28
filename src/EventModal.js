@@ -1,5 +1,6 @@
 // src/EventModal.js
 import gsap from 'gsap';
+import { Model3DViewer } from './Model3DViewer.js';
 
 // Kategori bilgileri
 const CATEGORIES = {
@@ -48,6 +49,9 @@ export class EventModal {
     this.gap = 16;
     this.trackOffset = 280; // Smaller for overlap effect
 
+    // 3D Model Viewer
+    this.modelViewer = null;
+
     this.init();
   }
 
@@ -87,6 +91,11 @@ export class EventModal {
                 <path d="M9 18l6-6-6-6"/>
               </svg>
             </button>
+
+            <!-- 3D Model Viewer - Bottom Left Corner -->
+            <div class="model-viewer-container" id="model-viewer-container">
+              <div class="model-viewer-glow"></div>
+            </div>
           </div>
 
           <!-- Info Section -->
@@ -196,6 +205,18 @@ export class EventModal {
     this.modal.classList.add('active');
     document.body.style.overflow = 'hidden';
 
+    // Initialize 3D Model Viewer
+    const modelContainer = document.getElementById('model-viewer-container');
+    if (modelContainer) {
+      // Destroy previous instance if exists
+      if (this.modelViewer) {
+        this.modelViewer.destroy();
+        this.modelViewer = null;
+      }
+      this.modelViewer = new Model3DViewer(modelContainer);
+      this.modelViewer.loadModel(category);
+    }
+
     // Animate in
     gsap.fromTo(this.modal.querySelector('.event-modal-content'),
       { scale: 0.9, opacity: 0, y: 30 },
@@ -214,6 +235,12 @@ export class EventModal {
         this.modal.classList.remove('active');
         document.body.style.overflow = '';
         this.clearMedia();
+
+        // Destroy 3D Model Viewer
+        if (this.modelViewer) {
+          this.modelViewer.destroy();
+          this.modelViewer = null;
+        }
       }
     });
   }
@@ -505,6 +532,12 @@ export class EventModal {
   }
 
   destroy() {
+    // Destroy 3D Model Viewer
+    if (this.modelViewer) {
+      this.modelViewer.destroy();
+      this.modelViewer = null;
+    }
+
     if (this.modal) {
       this.modal.remove();
     }
