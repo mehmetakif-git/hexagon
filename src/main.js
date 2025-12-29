@@ -14,12 +14,68 @@ import { HolographicCard } from './HolographicCard.js'
 
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
+// ═══════════════════════════════════════════════════════════════════════════════
+//  ALLYNC - Digital Experience Studio
+//  www.allync.com.tr | www.allyncai.com
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// Console Branding - Shows when developers open browser console
+(function printConsoleBranding() {
+  const styles = {
+    logo: 'font-size: 14px; font-weight: bold; color: #FF6B00; text-shadow: 0 0 10px #FF6B00;',
+    title: 'font-size: 20px; font-weight: bold; background: linear-gradient(90deg, #FF6B00, #FF8C00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; padding: 10px 0;',
+    subtitle: 'font-size: 12px; color: #888; font-style: italic;',
+    link: 'font-size: 11px; color: #FF6B00; text-decoration: underline;',
+    separator: 'font-size: 10px; color: #333;'
+  };
+
+  console.log(`
+%c    ╔═══════════════════════════════════════════════════════════╗
+    ║                                                           ║
+    ║     █████╗ ██╗     ██╗  ██╗   ██╗███╗   ██╗ ██████╗       ║
+    ║    ██╔══██╗██║     ██║  ╚██╗ ██╔╝████╗  ██║██╔════╝       ║
+    ║    ███████║██║     ██║   ╚████╔╝ ██╔██╗ ██║██║            ║
+    ║    ██╔══██║██║     ██║    ╚██╔╝  ██║╚██╗██║██║            ║
+    ║    ██║  ██║███████╗███████╗██║   ██║ ╚████║╚██████╗       ║
+    ║    ╚═╝  ╚═╝╚══════╝╚══════╝╚═╝   ╚═╝  ╚═══╝ ╚═════╝       ║
+    ║                                                           ║
+    ╚═══════════════════════════════════════════════════════════╝
+`, styles.logo);
+
+  console.log('%c✦ Crafted with passion by Allync', styles.title);
+  console.log('%cDigital Experience Studio', styles.subtitle);
+  console.log('%c─────────────────────────────────────', styles.separator);
+  console.log('%c🌐 www.allync.com.tr', styles.link);
+  console.log('%c🤖 www.allyncai.com', styles.link);
+  console.log('%c─────────────────────────────────────', styles.separator);
+  console.log('%c© 2025 Allync. All rights reserved.', styles.subtitle);
+  console.log('');
+})();
+
 // Global TracingBeam instance
 let tracingBeam = null;
 
-// Force scroll to top on page load/refresh
-window.history.scrollRestoration = 'manual';
+// Force scroll to top on page load/refresh - multiple fallbacks
+if ('scrollRestoration' in window.history) {
+  window.history.scrollRestoration = 'manual';
+}
 window.scrollTo(0, 0);
+document.documentElement.scrollTop = 0;
+
+// Additional scroll-to-top on DOM ready
+document.addEventListener('DOMContentLoaded', () => {
+  window.scrollTo(0, 0);
+  document.documentElement.scrollTop = 0;
+});
+
+// And on window load (after everything is loaded)
+window.addEventListener('load', () => {
+  // Small delay to override any browser restoration attempts
+  setTimeout(() => {
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+  }, 0);
+});
 
 // --- Configuration ---
 const COLORS = {
@@ -644,264 +700,382 @@ function playNeonAnimation() {
   }, null, 6.0);
 }
 
-// Shuffle text animation state
-let shuffleAnimationTimeline = null;
-let currentCharElements = [];
-let isTextAnimating = false;
-let textAnimationComplete = false; // Track if animation finished properly
+// ========================================
+// SHUFFLE TEXT ANIMATION - Robust Implementation
+// ========================================
 
-function cleanupShuffleAnimation() {
-  // Kill existing timeline
-  if (shuffleAnimationTimeline) {
-    shuffleAnimationTimeline.kill();
-    shuffleAnimationTimeline = null;
-  }
+const ShuffleText = {
+  timeline: null,
+  isAnimating: false,
+  isRevealed: false,
+  originalText: 'HEXAGON',
+  chars: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&',
 
-  // Kill any tweens on current elements
-  currentCharElements.forEach(item => {
-    if (item && item.inner) {
-      gsap.killTweensOf(item.inner);
-    }
-  });
-  currentCharElements = [];
+  // Character width cache (prevents measurement issues)
+  charWidthCache: {},
+  baseCharWidth: 0,
+  baseCharHeight: 0,
 
-  // Kill subtitle animations
-  gsap.killTweensOf('.subtitle');
-}
+  init() {
+    const title = document.querySelector('.title');
+    if (!title) return;
 
-// Force text to final state (for when animation is interrupted)
-function forceTextComplete() {
-  const title = document.querySelector('.title');
-  if (!title) return;
+    // Store original text
+    this.originalText = title.textContent.trim() || 'HEXAGON';
+    title.dataset.origText = this.originalText;
 
-  const text = title.dataset.origText || 'HEXAGON';
+    // Pre-calculate base character dimensions once
+    this.measureBaseCharacter(title);
 
-  // Simply set the text directly without animation
-  title.innerHTML = '';
-  title.style.cssText = 'opacity:1;display:block;text-align:center;';
-  title.textContent = text;
+    // Handle visibility changes
+    document.addEventListener('visibilitychange', () => this.handleVisibilityChange());
 
-  // Also ensure subtitle is visible
-  const subtitle = document.querySelector('.subtitle');
-  if (subtitle) {
-    gsap.set(subtitle, { opacity: 1, y: 0 });
-  }
+    // Handle window focus/blur
+    window.addEventListener('blur', () => this.handleBlur());
+    window.addEventListener('focus', () => this.handleFocus());
+  },
 
-  isTextAnimating = false;
-  textAnimationComplete = true;
-  currentCharElements = [];
-}
-
-// Page Visibility API - fix animation when tab becomes active
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible') {
-    // Tab became visible - check if animation was interrupted
-    if (isTextAnimating || (currentCharElements.length > 0 && !textAnimationComplete)) {
-      // Animation was in progress or left in bad state - force complete
-      cleanupShuffleAnimation();
-      forceTextComplete();
-    }
-  }
-});
-
-function revealText() {
-  const title = document.querySelector('.title');
-  if (!title) return;
-
-  // Prevent overlapping animations
-  if (isTextAnimating) {
-    cleanupShuffleAnimation();
-  }
-  isTextAnimating = true;
-  textAnimationComplete = false; // Animation starting
-
-  // Store original text
-  if (!title.dataset.origText) {
-    title.dataset.origText = title.textContent.trim() || 'HEXAGON';
-  }
-  const text = title.dataset.origText;
-
-  // Clean up previous animation
-  cleanupShuffleAnimation();
-
-  // Clear and setup title
-  title.innerHTML = '';
-  title.style.cssText = 'opacity:1;display:flex;justify-content:center;align-items:center;gap:0;';
-
-  const shuffleChars = '01#X%&@<>[]{}ABCDEFGH';
-  const rollCount = 10;
-
-  const titleStyle = window.getComputedStyle(title);
-  const fontSize = titleStyle.fontSize;
-  const fontFamily = titleStyle.fontFamily;
-
-  // Create character elements
-  currentCharElements = text.split('').map((char) => {
-    const isSpace = char === ' ';
-
-    // Measure character width
+  measureBaseCharacter(title) {
+    const titleStyle = window.getComputedStyle(title);
     const measure = document.createElement('span');
-    measure.style.cssText = `visibility:hidden;position:absolute;white-space:pre;font-size:${fontSize};font-family:${fontFamily}`;
-    measure.textContent = isSpace ? '\u00A0' : char;
+    measure.style.cssText = `
+      visibility: hidden;
+      position: absolute;
+      white-space: pre;
+      font-size: ${titleStyle.fontSize};
+      font-family: ${titleStyle.fontFamily};
+      font-weight: ${titleStyle.fontWeight};
+      letter-spacing: ${titleStyle.letterSpacing};
+    `;
+    measure.textContent = 'W'; // Use widest character for base
     document.body.appendChild(measure);
-    let charWidth = measure.offsetWidth || 60;
-    const charHeight = measure.offsetHeight || 80;
-    document.body.removeChild(measure);
 
-    // Container for single character
+    this.baseCharWidth = measure.offsetWidth || 60;
+    this.baseCharHeight = measure.offsetHeight || 80;
+
+    document.body.removeChild(measure);
+  },
+
+  cleanup() {
+    if (this.timeline) {
+      this.timeline.kill();
+      this.timeline = null;
+    }
+    gsap.killTweensOf('.shuffle-char');
+    gsap.killTweensOf('.shuffle-inner');
+    gsap.killTweensOf('.subtitle');
+    this.isAnimating = false;
+  },
+
+  forceComplete(showText = true) {
+    this.cleanup();
+
+    const title = document.querySelector('.title');
+    if (!title) return;
+
+    title.innerHTML = '';
+
+    if (showText) {
+      // Create shuffle-char elements showing final characters (same as reveal animation end state)
+      title.style.cssText = `
+        opacity: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0;
+      `;
+
+      // Create static character elements with same spacing as animation
+      this.originalText.split('').forEach(char => {
+        const isSpace = char === ' ';
+        const charWidth = this.baseCharWidth;
+        const charHeight = this.baseCharHeight;
+
+        const container = document.createElement('span');
+        container.className = 'shuffle-char';
+        container.style.cssText = `
+          display: inline-block;
+          width: ${charWidth}px;
+          height: ${charHeight}px;
+          overflow: hidden;
+          position: relative;
+          margin-right: ${isSpace ? '1.5rem' : '0.8rem'};
+          vertical-align: middle;
+        `;
+
+        const inner = document.createElement('span');
+        inner.style.cssText = `
+          display: inline-flex;
+          justify-content: center;
+          align-items: center;
+          width: ${charWidth}px;
+          height: ${charHeight}px;
+        `;
+        inner.textContent = char === ' ' ? '\u00A0' : char;
+
+        container.appendChild(inner);
+        title.appendChild(container);
+      });
+
+      this.isRevealed = true;
+
+      const subtitle = document.querySelector('.subtitle');
+      if (subtitle) {
+        gsap.set(subtitle, { opacity: 1, y: 0 });
+      }
+    } else {
+      title.style.cssText = 'opacity: 0; display: none;';
+      this.isRevealed = false;
+
+      const subtitle = document.querySelector('.subtitle');
+      if (subtitle) {
+        gsap.set(subtitle, { opacity: 0 });
+      }
+    }
+  },
+
+  handleVisibilityChange() {
+    if (document.visibilityState === 'visible' && this.isAnimating) {
+      // Animation was interrupted - force to expected state
+      this.forceComplete(this.isRevealed);
+    }
+  },
+
+  handleBlur() {
+    if (this.isAnimating) {
+      // Page lost focus during animation - complete it immediately
+      this.forceComplete(this.isRevealed);
+    }
+  },
+
+  handleFocus() {
+    // Page regained focus - only intervene if animation was interrupted
+    // If shuffle-chars exist and animation is NOT running, that's the normal completed state
+    // Don't call forceComplete as it would change the spacing
+  },
+
+  createCharacterStrip(char, isReverse = false) {
+    const isSpace = char === ' ';
+    const rollCount = 8;
+
+    // Use cached base width for consistency
+    const charWidth = this.baseCharWidth;
+    const charHeight = this.baseCharHeight;
+
+    // Container
     const container = document.createElement('span');
     container.className = 'shuffle-char';
-    container.style.cssText = `display:inline-block;width:${charWidth}px;height:${charHeight}px;overflow:hidden;position:relative;margin-right:${isSpace ? '2rem' : '1.2rem'};vertical-align:middle;`;
+    container.style.cssText = `
+      display: inline-block;
+      width: ${charWidth}px;
+      height: ${charHeight}px;
+      overflow: hidden;
+      position: relative;
+      margin-right: ${isSpace ? '1.5rem' : '0.8rem'};
+      vertical-align: middle;
+    `;
 
-    // Inner strip that scrolls
+    // Inner scrolling strip
     const inner = document.createElement('span');
     inner.className = 'shuffle-inner';
-    inner.style.cssText = 'display:inline-flex;position:absolute;left:0;top:0;white-space:nowrap;';
+    inner.style.cssText = `
+      display: flex;
+      flex-direction: row;
+      position: absolute;
+      left: 0;
+      top: 0;
+      white-space: nowrap;
+      will-change: transform;
+    `;
 
-    // Build strip: random chars first, then actual char at end
+    // Build character strip
     const strip = [];
-    for (let i = 0; i < rollCount; i++) {
-      strip.push(shuffleChars.charAt(Math.floor(Math.random() * shuffleChars.length)));
+    if (isReverse) {
+      // For unreveal: actual char first, then random
+      strip.push(char);
+      for (let i = 0; i < rollCount; i++) {
+        strip.push(this.chars.charAt(Math.floor(Math.random() * this.chars.length)));
+      }
+    } else {
+      // For reveal: random chars first, then actual char
+      for (let i = 0; i < rollCount; i++) {
+        strip.push(this.chars.charAt(Math.floor(Math.random() * this.chars.length)));
+      }
+      strip.push(char);
     }
-    strip.push(char);
 
     strip.forEach(s => {
-      const sSpan = document.createElement('span');
-      sSpan.textContent = s === ' ' ? '\u00A0' : s;
-      sSpan.style.cssText = `display:inline-block;width:${charWidth}px;text-align:center;flex-shrink:0;`;
-      inner.appendChild(sSpan);
+      const span = document.createElement('span');
+      span.textContent = s === ' ' ? '\u00A0' : s;
+      span.style.cssText = `
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        width: ${charWidth}px;
+        height: ${charHeight}px;
+        flex-shrink: 0;
+      `;
+      inner.appendChild(span);
     });
 
     container.appendChild(inner);
-    title.appendChild(container);
 
-    return { inner, charWidth, rollCount, container };
-  });
+    return {
+      container,
+      inner,
+      charWidth,
+      totalWidth: charWidth * strip.length,
+      rollCount
+    };
+  },
 
-  // Create animation timeline
-  shuffleAnimationTimeline = gsap.timeline({
-    onComplete: () => {
-      isTextAnimating = false;
-      textAnimationComplete = true; // Animation finished properly
+  reveal() {
+    const title = document.querySelector('.title');
+    if (!title) return;
+
+    // Prevent overlapping
+    if (this.isAnimating) {
+      this.cleanup();
     }
-  });
 
-  // Animate each character
-  currentCharElements.forEach((item, index) => {
-    gsap.set(item.inner, { x: 0 });
-    shuffleAnimationTimeline.to(item.inner, {
-      x: -item.charWidth * item.rollCount,
-      duration: 0.8,
-      ease: "power3.out"
-    }, index * 0.04);
-  });
+    this.isAnimating = true;
+    this.isRevealed = true;
 
-  // Subtitle animation
-  shuffleAnimationTimeline.fromTo('.subtitle',
-    { opacity: 0, y: 30 },
-    { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out' },
-    0.3
-  );
+    // Setup title
+    title.innerHTML = '';
+    title.style.cssText = `
+      opacity: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0;
+    `;
+
+    const text = this.originalText;
+    const charElements = [];
+
+    // Create all character elements
+    text.split('').forEach(char => {
+      const { container, inner, charWidth, rollCount } = this.createCharacterStrip(char, false);
+      title.appendChild(container);
+      charElements.push({ inner, charWidth, rollCount });
+    });
+
+    // Create timeline
+    this.timeline = gsap.timeline({
+      onComplete: () => {
+        this.isAnimating = false;
+        // Keep shuffle-chars in place - they're showing final characters with correct spacing
+        // Don't convert to plain text as it changes the visual spacing
+      }
+    });
+
+    // Animate each character with stagger
+    charElements.forEach((item, index) => {
+      // Start at beginning (showing random chars)
+      gsap.set(item.inner, { x: 0 });
+
+      // Animate to show final character
+      this.timeline.to(item.inner, {
+        x: -item.charWidth * item.rollCount,
+        duration: 0.6,
+        ease: 'power2.out'
+      }, index * 0.05);
+    });
+
+    // Subtitle fade in
+    this.timeline.fromTo('.subtitle',
+      { opacity: 0, y: 20 },
+      { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' },
+      0.2
+    );
+  },
+
+  unreveal() {
+    const title = document.querySelector('.title');
+    if (!title) return;
+
+    // Prevent overlapping
+    if (this.isAnimating) {
+      this.cleanup();
+    }
+
+    this.isAnimating = true;
+    this.isRevealed = false;
+
+    // Setup title
+    title.innerHTML = '';
+    title.style.cssText = `
+      opacity: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0;
+    `;
+
+    const text = this.originalText;
+    const charElements = [];
+
+    // Create all character elements (reverse order - actual char first)
+    text.split('').forEach(char => {
+      const { container, inner, charWidth, rollCount } = this.createCharacterStrip(char, true);
+      title.appendChild(container);
+      charElements.push({ inner, charWidth, rollCount });
+    });
+
+    // Create timeline
+    this.timeline = gsap.timeline({
+      onComplete: () => {
+        this.isAnimating = false;
+        title.style.opacity = '0';
+      }
+    });
+
+    // Animate each character with stagger
+    charElements.forEach((item, index) => {
+      // Start showing the actual character
+      gsap.set(item.inner, { x: 0 });
+
+      // Animate to hide (scroll through random chars)
+      this.timeline.to(item.inner, {
+        x: -item.charWidth * item.rollCount,
+        duration: 0.5,
+        ease: 'power2.in'
+      }, index * 0.04);
+    });
+
+    // Subtitle fade out
+    this.timeline.to('.subtitle', {
+      opacity: 0,
+      y: -15,
+      duration: 0.4,
+      ease: 'power2.in'
+    }, 0);
+  }
+};
+
+// Legacy function wrappers for compatibility
+function revealText() {
+  ShuffleText.reveal();
 }
 
 function unrevealText() {
-  const title = document.querySelector('.title');
-  if (!title) return;
+  ShuffleText.unreveal();
+}
 
-  // Prevent overlapping animations
-  if (isTextAnimating) {
-    cleanupShuffleAnimation();
-  }
-  isTextAnimating = true;
-  textAnimationComplete = false; // Animation starting
+function forceTextComplete() {
+  ShuffleText.forceComplete(true);
+}
 
-  const text = title.dataset.origText || 'HEXAGON';
+function cleanupShuffleAnimation() {
+  ShuffleText.cleanup();
+}
 
-  // Clean up previous animation
-  cleanupShuffleAnimation();
-
-  // Clear and setup title
-  title.innerHTML = '';
-  title.style.cssText = 'opacity:1;display:flex;justify-content:center;align-items:center;gap:0;';
-
-  const shuffleChars = '01#X%&@<>[]{}ABCDEFGH';
-  const rollCount = 10;
-
-  const titleStyle = window.getComputedStyle(title);
-  const fontSize = titleStyle.fontSize;
-  const fontFamily = titleStyle.fontFamily;
-
-  // Create character elements
-  currentCharElements = text.split('').map((char) => {
-    const isSpace = char === ' ';
-
-    // Measure character width
-    const measure = document.createElement('span');
-    measure.style.cssText = `visibility:hidden;position:absolute;white-space:pre;font-size:${fontSize};font-family:${fontFamily}`;
-    measure.textContent = isSpace ? '\u00A0' : char;
-    document.body.appendChild(measure);
-    let charWidth = measure.offsetWidth || 60;
-    const charHeight = measure.offsetHeight || 80;
-    document.body.removeChild(measure);
-
-    // Container for single character
-    const container = document.createElement('span');
-    container.className = 'shuffle-char';
-    container.style.cssText = `display:inline-block;width:${charWidth}px;height:${charHeight}px;overflow:hidden;position:relative;margin-right:${isSpace ? '2rem' : '1.2rem'};vertical-align:middle;`;
-
-    // Inner strip that scrolls
-    const inner = document.createElement('span');
-    inner.className = 'shuffle-inner';
-    inner.style.cssText = 'display:inline-flex;position:absolute;left:0;top:0;white-space:nowrap;';
-
-    // Build strip: actual char first, then random chars
-    const strip = [char];
-    for (let i = 0; i < rollCount; i++) {
-      strip.push(shuffleChars.charAt(Math.floor(Math.random() * shuffleChars.length)));
-    }
-
-    strip.forEach(s => {
-      const sSpan = document.createElement('span');
-      sSpan.textContent = s === ' ' ? '\u00A0' : s;
-      sSpan.style.cssText = `display:inline-block;width:${charWidth}px;text-align:center;flex-shrink:0;`;
-      inner.appendChild(sSpan);
-    });
-
-    container.appendChild(inner);
-    title.appendChild(container);
-
-    // Start showing actual character
-    gsap.set(inner, { x: 0 });
-
-    return { inner, charWidth, rollCount, container };
-  });
-
-  // Create animation timeline
-  shuffleAnimationTimeline = gsap.timeline({
-    onComplete: () => {
-      isTextAnimating = false;
-      textAnimationComplete = true; // Animation finished properly
-      // Hide title after animation
-      title.style.opacity = '0';
-    }
-  });
-
-  // Animate each character out
-  currentCharElements.forEach((item, index) => {
-    shuffleAnimationTimeline.to(item.inner, {
-      x: -item.charWidth * item.rollCount,
-      duration: 0.6,
-      ease: "power3.in"
-    }, index * 0.03);
-  });
-
-  // Subtitle fade out
-  shuffleAnimationTimeline.to('.subtitle', {
-    opacity: 0,
-    y: -20,
-    duration: 0.5,
-    ease: 'power2.in'
-  }, 0);
+// Initialize on load
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => ShuffleText.init());
+} else {
+  ShuffleText.init();
 }
 
 // Fallback procedurally generated proper hexagon ring if SVG fails or while loading

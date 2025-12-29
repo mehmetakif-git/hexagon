@@ -7,9 +7,35 @@
   <link rel="apple-touch-icon" href="/favicon.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Hexagon 3D | Infinite Experience</title>
+
+  <!-- Creator Credits -->
+  <meta name="author" content="Allync" />
+  <meta name="creator" content="Allync - www.allync.com.tr" />
+  <meta name="developer" content="Allync AI - www.allyncai.com" />
+  <meta name="description" content="Hexagon 3D - Next-Gen Brand Experiences. Crafted with passion by Allync." />
+
+  <!--
+    ╔═══════════════════════════════════════════════════════════════╗
+    ║                                                               ║
+    ║     Crafted with ♥ by ALLYNC                                  ║
+    ║                                                               ║
+    ║     www.allync.com.tr  |  www.allyncai.com                    ║
+    ║                                                               ║
+    ╚═══════════════════════════════════════════════════════════════╝
+  -->
 </head>
 
 <body>
+  <!-- Force scroll to top on page load - runs before browser restores scroll -->
+  <script>
+    if ('scrollRestoration' in history) {
+      history.scrollRestoration = 'manual';
+    }
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  </script>
+
   <div id="app"></div>
 
   <!-- Scroll indicator -->
@@ -744,6 +770,11 @@
         </div>
         <div class="footer-bottom">
           <p>&copy; 2025 HEXAGON. All rights reserved.</p>
+          <p class="footer-credit">
+            Crafted by <a href="https://www.allync.com.tr" target="_blank" rel="noopener">Allync</a>
+            <span class="credit-separator">|</span>
+            <a href="https://www.allyncai.com" target="_blank" rel="noopener">Allync AI</a>
+          </p>
         </div>
       </div>
     </footer>

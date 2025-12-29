@@ -1,3 +1,18 @@
+/*
+ * ═══════════════════════════════════════════════════════════════════════════
+ *  HEXAGON 3D - Next-Gen Brand Experiences
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ *  Crafted with passion by ALLYNC
+ *
+ *  Website: www.allync.com.tr
+ *  AI Lab:  www.allyncai.com
+ *
+ *  © 2025 Allync. All rights reserved.
+ *
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
+
 @import url('https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;500;600;700;800&display=swap');
 
 :root {
@@ -125,7 +140,16 @@ section {
 .hero {
   flex-direction: column;
   justify-content: center;
+  align-items: center;
   text-align: center;
+}
+
+.hero .container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
 }
 
 .service-section {
@@ -342,6 +366,9 @@ p {
   margin-top: 1rem;
   opacity: 0;
   transform: translateY(20px);
+  text-align: center;
+  width: 100%;
+  display: block;
 }
 
 .arabic {
@@ -418,12 +445,60 @@ p {
   padding-top: 1rem;
   border-top: 1px solid rgba(255, 255, 255, 0.05);
   text-align: center;
-  opacity: 0.4;
   font-size: 0.8rem;
   width: 100%;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
+  gap: 0.5rem;
+}
+
+.footer-bottom > p:first-child {
+  opacity: 0.4;
+}
+
+.footer-credit {
+  opacity: 0.6;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: opacity 0.3s ease;
+}
+
+.footer-credit:hover {
+  opacity: 1;
+}
+
+.footer-credit a {
+  color: var(--primary);
+  text-decoration: none;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.footer-credit a::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: var(--primary);
+  transition: width 0.3s ease;
+}
+
+.footer-credit a:hover {
+  text-shadow: 0 0 10px var(--primary-glow);
+}
+
+.footer-credit a:hover::after {
+  width: 100%;
+}
+
+.credit-separator {
+  color: rgba(255, 255, 255, 0.2);
 }
 
 @media (max-width: 768px) {
