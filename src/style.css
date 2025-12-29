@@ -615,6 +615,399 @@ p {
   pointer-events: auto;
 }
 
+/* About section needs wider card for team profiles */
+#about .flip-card-container {
+  max-width: 850px;
+}
+
+/* ============================================
+   CONTACT SECTION - CUSTOM STYLING (MODAL-LIKE)
+   Override all flip-card defaults
+   ============================================ */
+
+#contact .flip-card-container {
+  max-width: 1400px;
+}
+
+#contact .flip-card {
+  height: 800px;
+  /* Remove flip-card default background effects */
+  background: none !important;
+}
+
+#contact .flip-card::before {
+  /* Remove the blur overlay from flip-card */
+  display: none !important;
+}
+
+#contact .flip-page {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+}
+
+/* Contact Card - Full reset and modal-like styling */
+#contact .contact-card,
+#contact .flip-page .hexagon-card.contact-card {
+  /* CRITICAL: Reset flip-page .hexagon-card flex to block */
+  display: block !important;
+  flex-direction: unset !important;
+  align-items: unset !important;
+
+  /* Reset flip-page .hexagon-card defaults */
+  position: relative;
+  width: 100%;
+  height: 100%;
+  padding: 0 !important;
+  margin: 0;
+
+  /* Modal-like appearance */
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  background: rgba(20, 20, 30, 0.85) !important;
+  border: 1px solid rgba(255, 129, 6, 0.3) !important;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow:
+    0 25px 50px rgba(0, 0, 0, 0.5),
+    0 0 100px rgba(255, 68, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Top gradient line like modal */
+#contact .contact-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--primary), transparent);
+  z-index: 10;
+}
+
+/* Card edge indicator */
+#contact .contact-card .card-edge-indicator {
+  position: absolute;
+  top: 1.5rem;
+  right: 2rem;
+  font-family: 'Alexandria', sans-serif;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: rgba(255, 129, 6, 0.12);
+  line-height: 1;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* Contact Grid - Full height like modal */
+#contact .contact-grid {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  width: 100% !important;
+  height: 100% !important;
+  gap: 0;
+  position: relative;
+  z-index: 1;
+}
+
+/* Left Side - Contact Form */
+#contact .contact-form-side {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center;
+  padding: 3rem;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.2);
+  border-right: 1px solid rgba(255, 129, 6, 0.15);
+  grid-column: 1 !important;
+  grid-row: 1 !important;
+}
+
+/* Right Side - Globe */
+#contact .contact-globe-side {
+  grid-column: 2 !important;
+  grid-row: 1 !important;
+  position: relative;
+  background:
+    radial-gradient(ellipse at center, rgba(255, 129, 6, 0.08) 0%, transparent 60%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.3) 100%);
+  overflow: hidden;
+}
+
+#contact .form-header {
+  margin-bottom: 1.5rem;
+}
+
+#contact .form-header h2 {
+  font-family: 'Alexandria', sans-serif;
+  font-size: 1.8rem;
+  margin: 0 0 0.5rem 0;
+  background: linear-gradient(90deg, #fff 0%, #888 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+#contact .section-subtitle {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0;
+}
+
+#contact .contact-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+#contact .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+#contact .form-group label {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+#contact .form-group input,
+#contact .form-group textarea {
+  padding: 14px 18px;
+  background: rgba(255, 129, 6, 0.03);
+  border: 1px solid rgba(255, 129, 6, 0.15);
+  border-radius: 8px;
+  color: white;
+  font-family: 'Alexandria', sans-serif;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+}
+
+#contact .form-group input:focus,
+#contact .form-group textarea:focus {
+  outline: none;
+  border-color: rgba(255, 129, 6, 0.5);
+  background: rgba(255, 129, 6, 0.08);
+  box-shadow: 0 0 20px rgba(255, 129, 6, 0.1);
+}
+
+#contact .form-group textarea {
+  resize: none;
+  min-height: 100px;
+}
+
+#contact .form-submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 16px 32px;
+  background: linear-gradient(135deg, var(--primary), #ff6600);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-family: 'Alexandria', sans-serif;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 0.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+#contact .form-submit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(255, 129, 6, 0.4);
+}
+
+#contact .form-contact-info {
+  display: flex;
+  gap: 2rem;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 129, 6, 0.1);
+}
+
+#contact .info-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+#contact .info-icon {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 129, 6, 0.08);
+  border: 1px solid rgba(255, 129, 6, 0.2);
+  border-radius: 8px;
+  color: var(--primary);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+/* Subtle grid pattern for globe side */
+#contact .contact-globe-side::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image:
+    linear-gradient(rgba(255, 129, 6, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 129, 6, 0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+#contact .globe-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+#contact .globe-container {
+  width: 100%;
+  height: 60%;
+  min-height: 300px;
+}
+
+#contact .globe-container canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+#contact .globe-overlay {
+  position: absolute;
+  top: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  z-index: 10;
+  pointer-events: none;
+}
+
+#contact .globe-label {
+  display: inline-block;
+  padding: 5px 14px;
+  background: rgba(255, 129, 6, 0.1);
+  border: 1px solid rgba(255, 129, 6, 0.4);
+  border-radius: 50px;
+  font-size: 0.6rem;
+  font-weight: 500;
+  letter-spacing: 2px;
+  color: var(--primary);
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+  box-shadow: 0 0 15px rgba(255, 129, 6, 0.1);
+}
+
+#contact .globe-title {
+  font-family: 'Alexandria', sans-serif;
+  font-size: 1.4rem;
+  margin: 0;
+  color: white;
+  text-shadow: 0 0 20px rgba(255, 129, 6, 0.3);
+}
+
+/* Globe Locations */
+#contact .globe-locations {
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 1rem;
+  z-index: 10;
+}
+
+#contact .globe-locations .location {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+#contact .globe-locations .location::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 129, 6, 0.4);
+  transition: all 0.3s ease;
+}
+
+#contact .globe-locations .location:hover,
+#contact .globe-locations .location.active {
+  color: var(--primary);
+}
+
+#contact .globe-locations .location:hover::before,
+#contact .globe-locations .location.active::before {
+  background: var(--primary);
+  box-shadow: 0 0 10px rgba(255, 129, 6, 0.6);
+}
+
+/* Globe Stats */
+#contact .globe-stats {
+  display: flex;
+  gap: 3rem;
+  margin-top: 1.5rem;
+  z-index: 10;
+}
+
+#contact .globe-stat {
+  text-align: center;
+}
+
+#contact .globe-stat .stat-value {
+  display: block;
+  font-family: 'Alexandria', sans-serif;
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: var(--primary);
+}
+
+#contact .globe-stat .stat-label {
+  font-size: 0.65rem;
+  color: rgba(255, 255, 255, 0.4);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Responsive for Contact Card */
+@media (max-width: 768px) {
+  #contact .contact-grid {
+    grid-template-columns: 1fr;
+  }
+
+  #contact .contact-globe-side {
+    display: none;
+  }
+
+  #contact .contact-form-side {
+    padding: 1.5rem;
+  }
+}
+
 /* Sahneden çıkarken tüm kart fade out olacak - visible'ı override eder */
 .flip-card-container.visible.exiting {
   transition: opacity 0.5s ease-out;
@@ -2903,20 +3296,9 @@ p {
   touch-action: none;
 }
 
-/* Behind Glow */
+/* Behind Glow - disabled */
 .holo-behind {
-  position: absolute;
-  inset: -10px;
-  z-index: 0;
-  pointer-events: none;
-  background: radial-gradient(
-    circle at var(--pointer-x) var(--pointer-y),
-    var(--behind-glow-color) 0%,
-    transparent var(--behind-glow-size)
-  );
-  filter: blur(30px) saturate(1.1);
-  opacity: calc(0.6 * var(--card-opacity));
-  transition: opacity 200ms ease;
+  display: none;
 }
 
 .holo-card-wrapper:hover,
@@ -2975,9 +3357,9 @@ p {
   mask-image: var(--icon);
   mask-mode: luminance;
   mask-repeat: repeat;
-  mask-size: 150%;
-  mask-position: top calc(200% - (var(--background-y) * 5)) left calc(100% - var(--background-x));
-  transition: filter 0.8s ease;
+  mask-size: 85%;
+  mask-position: top calc(100% - (var(--background-y) * 1.5)) left calc(100% - var(--background-x));
+  transition: filter 0.1s ease-out, mask-position 0.15s ease-out;
   filter: brightness(0.66) contrast(1.33) saturate(0.33) opacity(0.5);
   animation: holo-bg 18s linear infinite;
   animation-play-state: running;
@@ -2990,7 +3372,7 @@ p {
   --angle: -45deg;
   transform: translate3d(0, 0, 1px);
   overflow: hidden;
-  z-index: 3;
+  z-index: 1;
   background: transparent;
   background-size: cover;
   background-position: center;
@@ -3039,7 +3421,7 @@ p {
   background-size: cover;
   grid-area: 1/1;
   opacity: 0;
-  transition: opacity 0.8s ease;
+  transition: opacity 0.1s ease-out;
 }
 
 .holo-card-shell:hover .holo-shine,
@@ -3115,6 +3497,7 @@ p {
   overflow: visible;
   transform: translateZ(2px);
   backface-visibility: hidden;
+  z-index: 2;
 }
 
 .holo-avatar-content .holo-avatar {

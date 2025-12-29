@@ -19,7 +19,9 @@ class TiltEngine {
     this.targetX = 0;
     this.targetY = 0;
 
-    this.DEFAULT_TAU = 0.14;
+    this.DEFAULT_TAU = 0.05; // Faster animation
+    this.LEAVE_TAU = 0.02; // Even faster when leaving
+    this.isLeaving = false;
   }
 
   setVarsFromXY(x, y) {
@@ -57,21 +59,24 @@ class TiltEngine {
     const dt = (ts - this.lastTs) / 1000;
     this.lastTs = ts;
 
-    const k = 1 - Math.exp(-dt / this.DEFAULT_TAU);
+    // Use faster TAU when leaving
+    const tau = this.isLeaving ? this.LEAVE_TAU : this.DEFAULT_TAU;
+    const k = 1 - Math.exp(-dt / tau);
 
     this.currentX += (this.targetX - this.currentX) * k;
     this.currentY += (this.targetY - this.currentY) * k;
 
     this.setVarsFromXY(this.currentX, this.currentY);
 
-    const stillFar = Math.abs(this.targetX - this.currentX) > 0.05 ||
-                     Math.abs(this.targetY - this.currentY) > 0.05;
+    const stillFar = Math.abs(this.targetX - this.currentX) > 0.5 ||
+                     Math.abs(this.targetY - this.currentY) > 0.5;
 
-    if (stillFar || document.hasFocus()) {
+    if (stillFar) {
       this.rafId = requestAnimationFrame((ts) => this.step(ts));
     } else {
       this.running = false;
       this.lastTs = 0;
+      this.isLeaving = false;
       if (this.rafId) {
         cancelAnimationFrame(this.rafId);
         this.rafId = null;
@@ -93,6 +98,7 @@ class TiltEngine {
   }
 
   setTarget(x, y) {
+    this.isLeaving = false;
     this.targetX = x;
     this.targetY = y;
     this.start();
@@ -100,7 +106,10 @@ class TiltEngine {
 
   toCenter() {
     if (!this.shell) return;
-    this.setTarget(this.shell.clientWidth / 2, this.shell.clientHeight / 2);
+    this.isLeaving = true;
+    this.targetX = this.shell.clientWidth / 2;
+    this.targetY = this.shell.clientHeight / 2;
+    this.start();
   }
 
   getCurrent() {

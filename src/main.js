@@ -1640,58 +1640,50 @@ if (document.readyState === 'loading') {
 }
 
 // ========================================
-// CONTACT MODAL WITH 3D GLOBE
+// CONTACT SECTION WITH 3D GLOBE
 // ========================================
 
 let hexagonGlobe = null;
+let globeInitialized = false;
 
-function initContactModal() {
-  const modal = document.getElementById('contact-modal');
-  const openBtn = document.getElementById('open-contact-modal');
-  const closeBtn = document.getElementById('close-contact-modal');
-  const backdrop = modal?.querySelector('.contact-modal-backdrop');
+function initContactSection() {
+  const contactSection = document.getElementById('contact');
   const globeContainer = document.getElementById('globe-container');
   const contactForm = document.getElementById('contact-form');
 
-  if (!modal || !openBtn) return;
+  if (!contactSection) return;
 
-  // Open modal
-  openBtn.addEventListener('click', () => {
-    modal.classList.add('active');
-    document.body.style.overflow = 'hidden';
-
-    // Initialize globe after modal is visible (needs dimensions)
-    setTimeout(() => {
-      if (!hexagonGlobe && globeContainer) {
-        hexagonGlobe = new HexagonGlobe(globeContainer);
-      }
-    }, 100);
-  });
-
-  // Close modal function
-  function closeModal() {
-    modal.classList.remove('active');
-    document.body.style.overflow = '';
-
-    // Destroy globe to free resources
-    if (hexagonGlobe) {
-      hexagonGlobe.destroy();
-      hexagonGlobe = null;
+  // Initialize globe when contact section becomes visible
+  function initGlobeIfNeeded() {
+    if (!globeInitialized && globeContainer && globeContainer.offsetWidth > 0) {
+      console.log('🌐 Initializing globe...');
+      hexagonGlobe = new HexagonGlobe(globeContainer);
+      globeInitialized = true;
     }
   }
 
-  // Close button
-  closeBtn?.addEventListener('click', closeModal);
+  // Use IntersectionObserver to detect when contact section is visible
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        // Small delay to ensure container has dimensions
+        setTimeout(initGlobeIfNeeded, 200);
+      }
+    });
+  }, { threshold: 0.1 });
 
-  // Close on backdrop click
-  backdrop?.addEventListener('click', closeModal);
+  observer.observe(contactSection);
 
-  // Close on Escape key
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && modal.classList.contains('active')) {
-      closeModal();
-    }
-  });
+  // Also try to init when flip-card becomes visible
+  const flipCardContainer = contactSection.querySelector('.flip-card-container');
+  if (flipCardContainer) {
+    const containerObserver = new MutationObserver(() => {
+      if (flipCardContainer.classList.contains('visible')) {
+        setTimeout(initGlobeIfNeeded, 200);
+      }
+    });
+    containerObserver.observe(flipCardContainer, { attributes: true, attributeFilter: ['class'] });
+  }
 
   // Form submit handler
   contactForm?.addEventListener('submit', (e) => {
@@ -1719,12 +1711,11 @@ function initContactModal() {
       submitBtn.innerHTML = originalText;
       submitBtn.style.background = '';
       contactForm.reset();
-      closeModal();
     }, 2000);
   });
 
   // Location click - rotate globe to exact coordinates
-  const locations = modal.querySelectorAll('.globe-locations .location');
+  const locations = contactSection.querySelectorAll('.globe-locations .location');
 
   // City coordinates (lat, lng)
   const cityCoords = {
@@ -1743,27 +1734,22 @@ function initContactModal() {
       // Add active to clicked
       loc.classList.add('active');
 
-      // Rotate globe to exact location using the Globe class method
+      // Rotate globe to exact location
       const city = loc.dataset.city;
       const coords = cityCoords[city];
 
-      console.log('📍 City coords:', coords);
-      console.log('🌐 hexagonGlobe exists:', !!hexagonGlobe);
-      console.log('🌐 hexagonGlobe.rotateToCity exists:', !!(hexagonGlobe && hexagonGlobe.rotateToCity));
-
       if (hexagonGlobe && coords) {
-        // Use the rotateToCity method which handles auto-rotate pause
         hexagonGlobe.rotateToCity(coords.lat, coords.lng);
       }
     });
   });
 }
 
-// Initialize contact modal when DOM ready
+// Initialize contact section when DOM ready
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initContactModal);
+  document.addEventListener('DOMContentLoaded', initContactSection);
 } else {
-  initContactModal();
+  initContactSection();
 }
 
 // ========================================
