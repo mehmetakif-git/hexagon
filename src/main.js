@@ -2055,3 +2055,368 @@ if (document.readyState === 'loading') {
 } else {
   initScrollIndicator();
 }
+
+// ========================================
+// COUNT-UP ANIMATION - Spring Physics
+// ========================================
+
+class SpringCountUp {
+  constructor(element, options = {}) {
+    this.element = element;
+    this.from = options.from ?? 0;
+    this.to = parseInt(element.dataset.target, 10) || 100;
+    this.suffix = element.dataset.suffix || '';
+    this.separator = options.separator ?? ',';
+    this.duration = options.duration ?? 2;
+    this.delay = options.delay ?? 0;
+
+    // Spring physics parameters
+    this.damping = 20 + 40 * (1 / this.duration);
+    this.stiffness = 100 * (1 / this.duration);
+
+    // State
+    this.currentValue = this.from;
+    this.velocity = 0;
+    this.targetValue = this.from;
+    this.isAnimating = false;
+    this.hasStarted = false;
+    this.rafId = null;
+    this.lastTime = null;
+
+    // Set initial value
+    this.updateDisplay(this.from);
+  }
+
+  // Format number with separator
+  formatValue(value) {
+    const rounded = Math.round(value);
+    const formatted = rounded.toLocaleString('en-US');
+    return (this.separator ? formatted.replace(/,/g, this.separator) : rounded.toString()) + this.suffix;
+  }
+
+  // Update DOM
+  updateDisplay(value) {
+    const formatted = this.formatValue(value);
+    this.element.textContent = formatted;
+    // Update data attribute for CSS ::before pseudo-element
+    this.element.setAttribute('data-value', formatted);
+  }
+
+  // Spring physics update
+  springStep(deltaTime) {
+    // Spring force: F = -k * x (where x is displacement from target)
+    const displacement = this.currentValue - this.targetValue;
+    const springForce = -this.stiffness * displacement;
+
+    // Damping force: F = -c * v
+    const dampingForce = -this.damping * this.velocity;
+
+    // Total acceleration (F = ma, assuming m = 1)
+    const acceleration = springForce + dampingForce;
+
+    // Update velocity and position
+    this.velocity += acceleration * deltaTime;
+    this.currentValue += this.velocity * deltaTime;
+
+    // Check if settled (velocity and displacement both very small)
+    const isSettled = Math.abs(this.velocity) < 0.01 && Math.abs(displacement) < 0.5;
+
+    return isSettled;
+  }
+
+  // Animation loop
+  animate(timestamp) {
+    if (!this.lastTime) {
+      this.lastTime = timestamp;
+    }
+
+    const deltaTime = Math.min((timestamp - this.lastTime) / 1000, 0.1); // Cap delta to prevent jumps
+    this.lastTime = timestamp;
+
+    const isSettled = this.springStep(deltaTime);
+    this.updateDisplay(this.currentValue);
+
+    if (isSettled) {
+      // Snap to final value
+      this.currentValue = this.targetValue;
+      this.updateDisplay(this.currentValue);
+      this.isAnimating = false;
+      this.rafId = null;
+    } else {
+      this.rafId = requestAnimationFrame((t) => this.animate(t));
+    }
+  }
+
+  // Start animation
+  start() {
+    if (this.hasStarted) return;
+    this.hasStarted = true;
+
+    setTimeout(() => {
+      this.targetValue = this.to;
+      this.isAnimating = true;
+      this.lastTime = null;
+      this.rafId = requestAnimationFrame((t) => this.animate(t));
+    }, this.delay * 1000);
+  }
+
+  // Cleanup
+  destroy() {
+    if (this.rafId) {
+      cancelAnimationFrame(this.rafId);
+    }
+  }
+}
+
+function initCountUpAnimation() {
+  const countElements = document.querySelectorAll('.count-up');
+  if (countElements.length === 0) return;
+
+  const instances = new Map();
+
+  // Create SpringCountUp instance for each element
+  countElements.forEach((el, index) => {
+    const instance = new SpringCountUp(el, {
+      duration: 2,
+      delay: index * 0.15, // Stagger delay
+      separator: ','
+    });
+    instances.set(el, instance);
+  });
+
+  // Use Intersection Observer to trigger animation
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const instance = instances.get(entry.target);
+        if (instance) {
+          instance.start();
+        }
+        // Unobserve after triggering (once: true behavior)
+        observer.unobserve(entry.target);
+      }
+    });
+  }, {
+    threshold: 0.3,
+    rootMargin: '0px'
+  });
+
+  // Observe all elements
+  countElements.forEach(el => observer.observe(el));
+}
+
+// Initialize count-up animation when DOM ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initCountUpAnimation);
+} else {
+  initCountUpAnimation();
+}
+
+// ========================================
+// EVENT LIST HOVER PREVIEW - Spring Physics
+// ========================================
+
+class EventHoverPreview {
+  constructor() {
+    this.preview = document.getElementById('category-preview');
+    this.previewImage = this.preview?.querySelector('.preview-image');
+    if (!this.preview || !this.previewImage) return;
+
+    // Spring physics state
+    this.currentX = 0;
+    this.currentY = 0;
+    this.targetX = 0;
+    this.targetY = 0;
+    this.velocityX = 0;
+    this.velocityY = 0;
+
+    // Spring parameters
+    this.stiffness = 150;
+    this.damping = 20;
+
+    // State
+    this.isVisible = false;
+    this.rafId = null;
+    this.lastTime = null;
+    this.activeItem = null;
+
+    // Event images mapping (placeholder paths - replace with actual images)
+    // Format: 'event-name-slug': '/assets/previews/events/filename.webp'
+    this.eventImages = {
+      // Live & Sports Events
+      'padel-world-cup-closing-ceremonies': '/assets/previews/events/padel-world-cup.webp',
+      'hayatna-activation-fifa-world-cup': '/assets/previews/events/hayatna-fifa.webp',
+      'fifa-world-cup-pre-match-ceremonies': '/assets/previews/events/fifa-pre-match.webp',
+      'arab-cup-opening-ceremonies': '/assets/previews/events/arab-cup.webp',
+      // Public Events
+      'psg-legends-at-the-pearl-qatar': '/assets/previews/events/psg-legends.webp',
+      'lusail-circuit-sports-club-speed-fest': '/assets/previews/events/speed-fest.webp',
+      'formula-1-concerts-stage-pyrotechnics': '/assets/previews/events/f1-concerts.webp',
+      'qatar-national-sports-day': '/assets/previews/events/sports-day.webp',
+      // Exhibitions
+      'treve-tower-exhibition-stand': '/assets/previews/events/treve-tower.webp',
+      'kowate-pavilion-at-project-qatar': '/assets/previews/events/kowate-pavilion.webp',
+      'bmc-pavilion-at-dimdex-qatar': '/assets/previews/events/bmc-pavilion.webp',
+      'ministry-of-culture-pavilion': '/assets/previews/events/ministry-culture.webp',
+      // Corporate Events
+      'porsche-cayenne-launch-event': '/assets/previews/events/porsche-cayenne.webp',
+      'qatar-university-alumni-gathering': '/assets/previews/events/qatar-uni.webp',
+      'executive-conferences': '/assets/previews/events/executive-conf.webp',
+      'product-launch-ceremonies': '/assets/previews/events/product-launch.webp',
+      // Festivals
+      'darb-al-saai-activation': '/assets/previews/events/darb-al-saai.webp',
+      'medina-centrale-festival': '/assets/previews/events/medina-centrale.webp',
+      'eid-festivals-at-katara': '/assets/previews/events/eid-katara.webp',
+      'qatar-international-food-festival': '/assets/previews/events/food-festival.webp'
+    };
+
+    this.init();
+  }
+
+  // Convert event name to slug
+  slugify(text) {
+    return text
+      .toLowerCase()
+      .replace(/[^\w\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/--+/g, '-')
+      .trim();
+  }
+
+  init() {
+    const eventItems = document.querySelectorAll('.event-list li');
+
+    eventItems.forEach(item => {
+      // Add data attribute for image lookup
+      const eventText = item.textContent.replace('✓', '').trim();
+      const slug = this.slugify(eventText);
+      item.dataset.event = slug;
+
+      item.addEventListener('mouseenter', (e) => this.handleMouseEnter(e, item));
+      item.addEventListener('mousemove', (e) => this.handleMouseMove(e));
+      item.addEventListener('mouseleave', () => this.handleMouseLeave());
+    });
+  }
+
+  handleMouseEnter(e, item) {
+    const eventSlug = item.dataset.event;
+    const imageSrc = this.eventImages[eventSlug];
+
+    if (imageSrc) {
+      this.previewImage.src = imageSrc;
+      this.previewImage.classList.remove('placeholder');
+
+      // Handle image load error - show placeholder pattern
+      this.previewImage.onerror = () => {
+        this.previewImage.src = '';
+        this.previewImage.classList.add('placeholder');
+      };
+    } else {
+      this.previewImage.src = '';
+      this.previewImage.classList.add('placeholder');
+    }
+
+    this.activeItem = item;
+    this.isVisible = true;
+
+    // Initialize position at mouse
+    const rect = item.getBoundingClientRect();
+    this.targetX = e.clientX;
+    this.targetY = rect.top - 200; // Position above the item
+    this.currentX = this.targetX;
+    this.currentY = this.targetY + 20; // Start slightly below for animation
+
+    this.preview.classList.add('visible');
+    this.startAnimation();
+  }
+
+  handleMouseMove(e) {
+    if (!this.isVisible || !this.activeItem) return;
+
+    const rect = this.activeItem.getBoundingClientRect();
+    const itemCenterX = rect.left + rect.width / 2;
+
+    // Calculate offset from item center (subtle following effect)
+    const offsetX = (e.clientX - itemCenterX) * 0.5;
+
+    this.targetX = itemCenterX + offsetX;
+    this.targetY = rect.top - 200;
+  }
+
+  handleMouseLeave() {
+    this.isVisible = false;
+    this.preview.classList.remove('visible');
+    this.activeItem = null;
+    
+    // Stop animation after fade out
+    setTimeout(() => {
+      if (!this.isVisible && this.rafId) {
+        cancelAnimationFrame(this.rafId);
+        this.rafId = null;
+      }
+    }, 200);
+  }
+
+  springStep(deltaTime) {
+    // X axis spring
+    const displacementX = this.currentX - this.targetX;
+    const springForceX = -this.stiffness * displacementX;
+    const dampingForceX = -this.damping * this.velocityX;
+    const accelerationX = springForceX + dampingForceX;
+    this.velocityX += accelerationX * deltaTime;
+    this.currentX += this.velocityX * deltaTime;
+
+    // Y axis spring
+    const displacementY = this.currentY - this.targetY;
+    const springForceY = -this.stiffness * displacementY;
+    const dampingForceY = -this.damping * this.velocityY;
+    const accelerationY = springForceY + dampingForceY;
+    this.velocityY += accelerationY * deltaTime;
+    this.currentY += this.velocityY * deltaTime;
+  }
+
+  updatePosition() {
+    // Center the preview horizontally on the current position
+    const previewWidth = this.preview.offsetWidth || 288;
+    const x = this.currentX - previewWidth / 2;
+    const y = this.currentY;
+    
+    this.preview.style.left = `${x}px`;
+    this.preview.style.top = `${y}px`;
+  }
+
+  animate(timestamp) {
+    if (!this.lastTime) {
+      this.lastTime = timestamp;
+    }
+
+    const deltaTime = Math.min((timestamp - this.lastTime) / 1000, 0.1);
+    this.lastTime = timestamp;
+
+    this.springStep(deltaTime);
+    this.updatePosition();
+
+    if (this.isVisible) {
+      this.rafId = requestAnimationFrame((t) => this.animate(t));
+    }
+  }
+
+  startAnimation() {
+    if (this.rafId) {
+      cancelAnimationFrame(this.rafId);
+    }
+    this.lastTime = null;
+    this.rafId = requestAnimationFrame((t) => this.animate(t));
+  }
+}
+
+// Initialize event hover preview when DOM ready
+function initEventHoverPreview() {
+  new EventHoverPreview();
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initEventHoverPreview);
+} else {
+  initEventHoverPreview();
+}

@@ -195,9 +195,9 @@
               <p class="section-subtitle">Crafting Unforgettable Moments</p>
               <p>From spectacular drone light shows to immersive AR experiences, we transform ordinary events into extraordinary memories.</p>
               <div class="stats-grid">
-                <div class="stat"><span>500+</span> Events</div>
-                <div class="stat"><span>40+</span> Countries</div>
-                <div class="stat"><span>5</span> Categories</div>
+                <div class="stat"><span class="count-up" data-target="500" data-suffix="+">0</span> Events</div>
+                <div class="stat"><span class="count-up" data-target="40" data-suffix="+">0</span> Countries</div>
+                <div class="stat"><span class="count-up" data-target="5" data-suffix="">0</span> Categories</div>
               </div>
             </div>
           </div>
@@ -723,11 +723,11 @@
                     </div>
                     <div class="globe-stats">
                       <div class="globe-stat">
-                        <span class="stat-value">40+</span>
+                        <span class="stat-value count-up" data-target="40" data-suffix="+">0</span>
                         <span class="stat-label">Countries</span>
                       </div>
                       <div class="globe-stat">
-                        <span class="stat-value">500+</span>
+                        <span class="stat-value count-up" data-target="500" data-suffix="+">0</span>
                         <span class="stat-label">Events</span>
                       </div>
                     </div>
@@ -781,6 +781,13 @@
   </main>
 
   <script type="module" src="/src/main.js"></script>
+  <!-- Category Hover Preview -->
+  <div id="category-preview" class="category-preview">
+    <div class="preview-image-wrapper">
+      <img src="" alt="Category preview" class="preview-image" />
+    </div>
+  </div>
+
 </body>
 
 </html>

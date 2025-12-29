@@ -3729,3 +3729,134 @@ p {
     top: -2px;
   }
 }
+
+/* ========================================
+   COUNT-UP ANIMATION - Gradient Text
+   ======================================== */
+
+.stat span.count-up,
+.globe-stat .stat-value.count-up {
+  background: linear-gradient(135deg, #FFDD99 0%, #FF8106 40%, #FF4400 80%, #CC3300 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  position: relative;
+  display: inline-block;
+}
+
+/* Glow effect behind text */
+.stat span.count-up::before,
+.globe-stat .stat-value.count-up::before {
+  content: attr(data-value);
+  position: absolute;
+  left: 0;
+  top: 0;
+  background: linear-gradient(135deg, #FF8106 0%, #FF4400 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: blur(12px);
+  opacity: 0.6;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* ========================================
+   CATEGORY HOVER PREVIEW
+   ======================================== */
+
+.category-preview {
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0;
+  transform: scale(0.6) translateY(20px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  will-change: transform, opacity, left, top;
+}
+
+.category-preview.visible {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+}
+
+.preview-image-wrapper {
+  background: linear-gradient(135deg, rgba(255, 129, 6, 0.1) 0%, rgba(255, 68, 0, 0.1) 100%);
+  border: 2px solid rgba(255, 129, 6, 0.3);
+  border-radius: 12px;
+  padding: 4px;
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.5),
+    0 0 30px rgba(255, 129, 6, 0.2),
+    inset 0 0 20px rgba(255, 129, 6, 0.05);
+  backdrop-filter: blur(10px);
+  overflow: hidden;
+}
+
+.preview-image-wrapper::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255, 129, 6, 0.15) 0%, transparent 50%);
+  border-radius: 12px;
+  pointer-events: none;
+}
+
+.preview-image {
+  display: block;
+  width: 280px;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+}
+
+/* Placeholder pattern for missing images */
+.preview-image.placeholder {
+  background: 
+    linear-gradient(135deg, rgba(255, 129, 6, 0.1) 25%, transparent 25%),
+    linear-gradient(225deg, rgba(255, 129, 6, 0.1) 25%, transparent 25%),
+    linear-gradient(45deg, rgba(255, 129, 6, 0.1) 25%, transparent 25%),
+    linear-gradient(315deg, rgba(255, 129, 6, 0.1) 25%, transparent 25%),
+    linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
+  background-size: 20px 20px;
+  background-position: 0 0, 10px 0, 10px -10px, 0 10px;
+}
+
+/* Category button hover state enhancement */
+.category-btn {
+  position: relative;
+}
+
+.category-btn::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--primary), transparent);
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+}
+
+.category-btn:hover::after {
+  transform: scaleX(1);
+}
+
+/* Event list item hover enhancement */
+.event-list li {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.event-list li:hover {
+  color: var(--primary);
+  transform: translateX(4px);
+}
+
+.event-list li:hover .event-check {
+  transform: scale(1.2);
+}
