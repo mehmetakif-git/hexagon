@@ -4,3 +4,49 @@
 
 [build.environment]
   NODE_VERSION = "20"
+
+# ═══════════════════════════════════════════════════════════════════════════
+# SECURITY HEADERS - Allync Protection
+# © 2025 Allync. All Rights Reserved.
+# ═══════════════════════════════════════════════════════════════════════════
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    # Prevent Clickjacking
+    X-Frame-Options = "DENY"
+
+    # XSS Protection
+    X-XSS-Protection = "1; mode=block"
+
+    # Prevent MIME Type Sniffing
+    X-Content-Type-Options = "nosniff"
+
+    # Referrer Policy
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+    # Content Security Policy
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https:; frame-ancestors 'none'; base-uri 'self'; form-action 'self';"
+
+    # Permissions Policy (disable features not needed)
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=()"
+
+    # Strict Transport Security (HTTPS only)
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
+
+    # Cache Control for security
+    Cache-Control = "no-store, no-cache, must-revalidate, proxy-revalidate"
+
+# Cache static assets longer (but not HTML)
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Prevent caching of HTML files
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+    Pragma = "no-cache"
+    Expires = "0"

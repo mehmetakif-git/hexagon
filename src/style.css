@@ -10,10 +10,97 @@
  *
  *  © 2025 Allync. All rights reserved.
  *
+ *  ⚠️ PROTECTED CONTENT - Unauthorized copying is prohibited.
+ *
  * ═══════════════════════════════════════════════════════════════════════════
  */
 
 @import url('https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;500;600;700;800&display=swap');
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SECURITY STYLES - Anti-Copy Protection
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Disable text selection globally */
+*, *::before, *::after {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* Allow selection only in form inputs */
+input, textarea, [contenteditable="true"] {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+}
+
+/* Disable image dragging */
+img, svg, canvas, video {
+  -webkit-user-drag: none;
+  -khtml-user-drag: none;
+  -moz-user-drag: none;
+  -o-user-drag: none;
+  user-drag: none;
+  pointer-events: none;
+}
+
+/* Re-enable pointer events for interactive images (if needed) */
+img.interactive, svg.interactive {
+  pointer-events: auto;
+}
+
+/* Disable print styles */
+@media print {
+  * {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  body::before {
+    content: "⚠️ This content is protected and cannot be printed. © Allync - www.allync.com.tr";
+    display: block !important;
+    visibility: visible !important;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 24px;
+    color: #FF8106;
+    text-align: center;
+    background: #000;
+    padding: 40px;
+    border: 2px solid #FF8106;
+    z-index: 999999;
+  }
+}
+
+/* Disable highlighting */
+::selection {
+  background: transparent;
+  color: inherit;
+}
+
+::-moz-selection {
+  background: transparent;
+  color: inherit;
+}
+
+/* Invisible watermark overlay */
+body::after {
+  content: "© Allync - www.allync.com.tr";
+  position: fixed;
+  bottom: -100px;
+  right: -100px;
+  font-size: 8px;
+  color: transparent;
+  pointer-events: none;
+  z-index: -1;
+  opacity: 0;
+}
 
 :root {
   --primary: #FF8106;

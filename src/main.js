@@ -2420,3 +2420,282 @@ if (document.readyState === 'loading') {
 } else {
   initEventHoverPreview();
 }
+
+// ========================================
+// SECURITY PROTECTION SYSTEM
+// ========================================
+// © Allync - www.allync.com.tr | www.allyncai.com
+// Unauthorized copying, modification, or distribution is prohibited.
+
+(function SecurityProtection() {
+  'use strict';
+
+  const SECURITY_CONFIG = {
+    disableRightClick: true,
+    disableKeyboardShortcuts: true,
+    disableTextSelection: true,
+    disableDragDrop: true,
+    disablePrint: true,
+    detectDevTools: true,
+    consoleWarning: true,
+    antiDebug: true
+  };
+
+  // ═══════════════════════════════════════════════════════════════
+  // 1. DISABLE RIGHT-CLICK CONTEXT MENU
+  // ═══════════════════════════════════════════════════════════════
+  if (SECURITY_CONFIG.disableRightClick) {
+    document.addEventListener('contextmenu', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    }, true);
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // 2. DISABLE KEYBOARD SHORTCUTS
+  // ═══════════════════════════════════════════════════════════════
+  if (SECURITY_CONFIG.disableKeyboardShortcuts) {
+    document.addEventListener('keydown', function(e) {
+      // F12 - Dev Tools
+      if (e.key === 'F12' || e.keyCode === 123) {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+      }
+
+      // Ctrl+Shift+I - Dev Tools
+      if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.keyCode === 73)) {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+      }
+
+      // Ctrl+Shift+J - Console
+      if (e.ctrlKey && e.shiftKey && (e.key === 'J' || e.key === 'j' || e.keyCode === 74)) {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+      }
+
+      // Ctrl+Shift+C - Element Inspector
+      if (e.ctrlKey && e.shiftKey && (e.key === 'C' || e.key === 'c' || e.keyCode === 67)) {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+      }
+
+      // Ctrl+U - View Source
+      if (e.ctrlKey && (e.key === 'U' || e.key === 'u' || e.keyCode === 85)) {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+      }
+
+      // Ctrl+S - Save Page
+      if (e.ctrlKey && (e.key === 'S' || e.key === 's' || e.keyCode === 83)) {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+      }
+
+      // Ctrl+P - Print
+      if (e.ctrlKey && (e.key === 'P' || e.key === 'p' || e.keyCode === 80)) {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+      }
+
+      // Ctrl+A - Select All
+      if (e.ctrlKey && (e.key === 'A' || e.key === 'a' || e.keyCode === 65)) {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+      }
+
+      // Ctrl+C - Copy (optional - can be annoying)
+      if (e.ctrlKey && (e.key === 'C' || e.key === 'c' || e.keyCode === 67) && !e.shiftKey) {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+      }
+    }, true);
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // 3. DISABLE TEXT SELECTION
+  // ═══════════════════════════════════════════════════════════════
+  if (SECURITY_CONFIG.disableTextSelection) {
+    document.addEventListener('selectstart', function(e) {
+      e.preventDefault();
+      return false;
+    }, true);
+
+    document.addEventListener('mousedown', function(e) {
+      if (e.detail > 1) { // Double-click or more
+        e.preventDefault();
+        return false;
+      }
+    }, true);
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // 4. DISABLE DRAG AND DROP
+  // ═══════════════════════════════════════════════════════════════
+  if (SECURITY_CONFIG.disableDragDrop) {
+    document.addEventListener('dragstart', function(e) {
+      e.preventDefault();
+      return false;
+    }, true);
+
+    document.addEventListener('drop', function(e) {
+      e.preventDefault();
+      return false;
+    }, true);
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // 5. DISABLE PRINT
+  // ═══════════════════════════════════════════════════════════════
+  if (SECURITY_CONFIG.disablePrint) {
+    window.addEventListener('beforeprint', function(e) {
+      e.preventDefault();
+      document.body.style.display = 'none';
+    });
+
+    window.addEventListener('afterprint', function() {
+      document.body.style.display = '';
+    });
+
+    // Override print function
+    window.print = function() {
+      console.warn('⚠️ Printing is disabled on this website.');
+      return false;
+    };
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // 6. DEV TOOLS DETECTION
+  // ═══════════════════════════════════════════════════════════════
+  if (SECURITY_CONFIG.detectDevTools) {
+    let devToolsOpen = false;
+
+    const detectDevTools = function() {
+      const widthThreshold = window.outerWidth - window.innerWidth > 160;
+      const heightThreshold = window.outerHeight - window.innerHeight > 160;
+
+      if (widthThreshold || heightThreshold) {
+        if (!devToolsOpen) {
+          devToolsOpen = true;
+          console.clear();
+          console.log('%c⚠️ WARNING', 'color: red; font-size: 40px; font-weight: bold; text-shadow: 2px 2px 0 #000;');
+          console.log('%cThis website is protected by Allync Security System.', 'color: #FF8106; font-size: 16px;');
+          console.log('%cUnauthorized access, copying, or reverse engineering is prohibited.', 'color: #ff4444; font-size: 14px;');
+          console.log('%c© Allync - www.allync.com.tr', 'color: #888; font-size: 12px;');
+        }
+      } else {
+        devToolsOpen = false;
+      }
+    };
+
+    // Check periodically
+    setInterval(detectDevTools, 1000);
+
+    // Debugger detection using timing
+    const detectDebugger = function() {
+      const start = performance.now();
+      debugger;
+      const end = performance.now();
+      if (end - start > 100) {
+        console.clear();
+      }
+    };
+
+    // Run debugger detection occasionally
+    if (SECURITY_CONFIG.antiDebug) {
+      setInterval(detectDebugger, 5000);
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // 7. CONSOLE WARNING
+  // ═══════════════════════════════════════════════════════════════
+  if (SECURITY_CONFIG.consoleWarning) {
+    // Initial warning
+    setTimeout(function() {
+      console.log('%c🛡️ PROTECTED CONTENT', 'color: #FF8106; font-size: 24px; font-weight: bold;');
+      console.log('%c════════════════════════════════════════════════════════════════', 'color: #333;');
+      console.log('%cThis website and its source code are protected by copyright law.', 'color: #ff6666; font-size: 14px;');
+      console.log('%cUnauthorized copying, modification, or distribution is strictly prohibited.', 'color: #ff6666; font-size: 12px;');
+      console.log('%c════════════════════════════════════════════════════════════════', 'color: #333;');
+      console.log('%c© 2025 Allync. All Rights Reserved.', 'color: #888; font-size: 11px;');
+      console.log('%cwww.allync.com.tr | www.allyncai.com', 'color: #FF8106; font-size: 11px;');
+    }, 100);
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // 8. IFRAME PROTECTION (Clickjacking Prevention)
+  // ═══════════════════════════════════════════════════════════════
+  if (window.self !== window.top) {
+    // Site is in an iframe - break out or hide content
+    try {
+      window.top.location = window.self.location;
+    } catch (e) {
+      // Can't break out, hide content
+      document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#000;color:#FF8106;font-family:Arial;font-size:24px;">⚠️ This content cannot be displayed in an iframe.</div>';
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // 9. DISABLE IMAGE DOWNLOAD
+  // ═══════════════════════════════════════════════════════════════
+  document.addEventListener('DOMContentLoaded', function() {
+    const images = document.querySelectorAll('img');
+    images.forEach(function(img) {
+      img.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+        return false;
+      });
+      img.setAttribute('draggable', 'false');
+      img.style.pointerEvents = 'none';
+    });
+
+    // Re-apply to dynamically loaded images
+    const observer = new MutationObserver(function(mutations) {
+      mutations.forEach(function(mutation) {
+        mutation.addedNodes.forEach(function(node) {
+          if (node.nodeName === 'IMG') {
+            node.addEventListener('contextmenu', function(e) { e.preventDefault(); });
+            node.setAttribute('draggable', 'false');
+          }
+          if (node.querySelectorAll) {
+            node.querySelectorAll('img').forEach(function(img) {
+              img.addEventListener('contextmenu', function(e) { e.preventDefault(); });
+              img.setAttribute('draggable', 'false');
+            });
+          }
+        });
+      });
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+  });
+
+  // ═══════════════════════════════════════════════════════════════
+  // 10. SOURCE CODE OBFUSCATION MARKER
+  // ═══════════════════════════════════════════════════════════════
+  // This code is protected and minified in production.
+  // Any attempt to reverse-engineer will result in legal action.
+  Object.defineProperty(window, '__ALLYNC_PROTECTED__', {
+    value: true,
+    writable: false,
+    configurable: false
+  });
+
+  Object.defineProperty(window, '__COPYRIGHT__', {
+    value: '© 2025 Allync. All Rights Reserved. www.allync.com.tr',
+    writable: false,
+    configurable: false
+  });
+
+})();
