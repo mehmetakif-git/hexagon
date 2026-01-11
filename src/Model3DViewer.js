@@ -500,11 +500,23 @@ export class Model3DViewer {
       });
     }
 
-    // Setup meshes
+    // Setup meshes and fix texture colorSpace for Three.js r152+
     this.model.traverse((child) => {
       if (child.isMesh) {
         child.visible = true;
         child.frustumCulled = false;
+
+        // Fix texture colorSpace for proper rendering
+        if (child.material) {
+          const materials = Array.isArray(child.material) ? child.material : [child.material];
+          materials.forEach(mat => {
+            // Color/diffuse maps should be sRGB
+            if (mat.map) mat.map.colorSpace = THREE.SRGBColorSpace;
+            if (mat.emissiveMap) mat.emissiveMap.colorSpace = THREE.SRGBColorSpace;
+            // Ensure material updates
+            mat.needsUpdate = true;
+          });
+        }
       }
     });
 

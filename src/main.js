@@ -2430,6 +2430,13 @@ if (document.readyState === 'loading') {
 (function SecurityProtection() {
   'use strict';
 
+  // Skip security protection in development mode
+  const isDev = import.meta.env?.DEV || window.location.hostname === 'localhost';
+  if (isDev) {
+    console.log('🔓 Security protection disabled in dev mode');
+    return;
+  }
+
   const SECURITY_CONFIG = {
     disableRightClick: true,
     disableKeyboardShortcuts: true,

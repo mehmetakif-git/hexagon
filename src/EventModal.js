@@ -47,9 +47,9 @@ export class EventModal {
     this.dragCurrentX = 0;
 
     // Carousel settings - centered layout
-    this.itemWidth = 480;
-    this.itemHeight = 320;
-    this.trackOffset = 350; // Space between card centers
+    this.itemWidth = 680;
+    this.itemHeight = 450;
+    this.trackOffset = 500; // Space between card centers
 
     // 3D Model Viewer
     this.modelViewer = null;
