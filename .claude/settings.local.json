@@ -20,7 +20,15 @@
       "Bash(git -C e:/hexagon add:*)",
       "Bash(git -C e:/hexagon commit -m \"$\\(cat <<''EOF''\nEnhance Globe interaction and unify Contact Modal styling\n\n- Add city rotation with auto-rotate pause \\(rotateToCity method\\)\n- Fix globe rotation formula with calibration offset\n- Pause auto-rotate during mouse drag interaction\n- Add debug logging for city click events\n- Unify Contact Modal with hexagon-card design system\n- Add card edge indicator, gradient line, radial glow effects\n- Update form inputs with orange-themed styling\n- Add sweep animation to submit button\n- Add grid pattern to globe section background\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
       "Bash(git -C e:/hexagon push)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(gh api:*)",
+      "Bash(nslookup:*)",
+      "Bash(git -C e:/hexagon log --oneline -5)",
+      "Bash(git -C e:/hexagon fetch:*)",
+      "Bash(git -C e:/hexagon log --oneline origin/main -5)",
+      "Bash(git -C e:/hexagon commit -m \"$\\(cat <<''EOF''\nAdd comprehensive security protection system\n\n- Add JavaScript security module with 10 protection layers:\n  - Disable right-click context menu\n  - Block keyboard shortcuts \\(F12, Ctrl+U, Ctrl+S, etc.\\)\n  - Disable text selection and copy\n  - Disable drag and drop\n  - Disable printing\n  - Dev tools detection with console warning\n  - Anti-debugger protection\n  - Iframe/clickjacking prevention\n  - Image download protection\n  - Source code obfuscation markers\n\n- Add CSS security styles:\n  - Global user-select: none\n  - Print media query protection\n  - Selection highlight disabled\n  - Image drag prevention\n\n- Add Vite production config:\n  - Source maps disabled\n  - Terser minification with obfuscation\n  - Dead code elimination\n  - Variable name mangling\n  - Comments removed\n\n- Add security HTTP headers:\n  - X-Frame-Options: DENY\n  - Content-Security-Policy\n  - X-XSS-Protection\n  - X-Content-Type-Options\n  - Strict-Transport-Security\n  - Referrer-Policy\n  - Permissions-Policy\n\n- Add vercel.json for Vercel deployment security\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(npm ls:*)",
+      "Bash(git commit:*)"
     ]
   }
 }

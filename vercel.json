@@ -31,6 +31,10 @@
         {
           "key": "Strict-Transport-Security",
           "value": "max-age=31536000; includeSubDomains; preload"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noai, noimageai, noarchive, nocache"
         }
       ]
     },
@@ -40,6 +44,27 @@
         {
           "key": "Cache-Control",
           "value": "public, max-age=31536000, immutable"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, noai, noimageai"
+        },
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "same-origin"
+        }
+      ]
+    },
+    {
+      "source": "/assets/models/(.*)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow, noai"
+        },
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "same-origin"
         }
       ]
     }
