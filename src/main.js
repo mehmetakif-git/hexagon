@@ -2437,6 +2437,39 @@ if (document.readyState === 'loading') {
     return;
   }
 
+  // ═══════════════════════════════════════════════════════════════
+  // BOT & HEADLESS BROWSER DETECTION
+  // ═══════════════════════════════════════════════════════════════
+  (function detectBot() {
+    const ua = navigator.userAgent.toLowerCase();
+    const botPatterns = [
+      'bot', 'crawl', 'spider', 'scrape', 'fetch',
+      'gptbot', 'chatgpt', 'claude', 'anthropic', 'bard',
+      'ccbot', 'bytespider', 'cohere', 'perplexity',
+      'headless', 'phantom', 'selenium', 'puppeteer', 'playwright',
+      'python', 'curl', 'wget', 'axios', 'node-fetch', 'go-http'
+    ];
+
+    const isBot = botPatterns.some(p => ua.includes(p));
+    const isHeadless = navigator.webdriver ||
+                       !navigator.languages?.length ||
+                       navigator.plugins?.length === 0 ||
+                       !window.chrome && /chrome/.test(ua);
+
+    if (isBot || isHeadless) {
+      document.documentElement.innerHTML = `
+        <div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#0a0a0a;color:#ff8106;font-family:sans-serif;text-align:center;padding:2rem;">
+          <div>
+            <h1 style="font-size:2rem;margin-bottom:1rem;">Access Denied</h1>
+            <p style="color:#888;">Automated access is not permitted.</p>
+            <p style="color:#666;font-size:0.8rem;margin-top:2rem;">© Allync - www.allync.com.tr</p>
+          </div>
+        </div>
+      `;
+      throw new Error('Bot detected');
+    }
+  })();
+
   const SECURITY_CONFIG = {
     disableRightClick: true,
     disableKeyboardShortcuts: true,
